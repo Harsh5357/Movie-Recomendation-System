@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMatch - Movie Recommendations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .movie-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .movie-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .star-rating {
+            color: #fbbf24;
+        }
+        .genre-tag {
+            transition: all 0.2s ease;
+        }
+        .genre-tag:hover {
+            transform: scale(1.05);
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .loading {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Header -->
+    <header class="hero-gradient py-8">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <h1 class="text-5xl font-bold mb-4">🎬 CineMatch</h1>
+                <p class="text-xl text-gray-200 mb-2">Discover your next favorite movie</p>
+                <p class="text-sm text-gray-300 mb-8" id="movieCount">Loading movie database...</p>
+                
+                <!-- Search Bar -->
+                <div class="max-w-2xl mx-auto relative">
+                    <input 
+                        type="text" 
+                        id="searchInput"
+                        placeholder="Search for movies, actors, or directors..."
+                        class="w-full px-6 py-4 text-lg rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+                    >
+                    <button 
+                        onclick="searchMovies()"
+                        class="absolute right-2 top-2 bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                    >
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Genre Filter -->
+    <section class="py-8 bg-gray-800">
+        <div class="container mx-auto px-6">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Browse by Genre</h2>
+            <div class="flex flex-wrap justify-center gap-3" id="genreFilter">
+                <button onclick="filterByGenre('all')" class="genre-tag bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-full text-sm font-medium active-genre">All</button>
+                <button onclick="filterByGenre('action')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Action</button>
+                <button onclick="filterByGenre('adventure')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Adventure</button>
+                <button onclick="filterByGenre('animation')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Animation</button>
+                <button onclick="filterByGenre('comedy')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Comedy</button>
+                <button onclick="filterByGenre('crime')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Crime</button>
+                <button onclick="filterByGenre('documentary')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Documentary</button>
+                <button onclick="filterByGenre('drama')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Drama</button>
+                <button onclick="filterByGenre('fantasy')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Fantasy</button>
+                <button onclick="filterByGenre('horror')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Horror</button>
+                <button onclick="filterByGenre('mystery')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Mystery</button>
+                <button onclick="filterByGenre('romance')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Romance</button>
+                <button onclick="filterByGenre('sci-fi')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Sci-Fi</button>
+                <button onclick="filterByGenre('thriller')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Thriller</button>
+                <button onclick="filterByGenre('war')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">War</button>
+                <button onclick="filterByGenre('western')" class="genre-tag bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full text-sm font-medium">Western</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sort Options -->
+    <section class="py-4 bg-gray-850">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-center gap-4">
+                <select id="sortSelect" onchange="sortMovies()" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="rating">Sort by Rating</option>
+                    <option value="year">Sort by Year</option>
+                    <option value="title">Sort by Title</option>
+                    <option value="random">Random Order</option>
+                </select>
+                <div class="flex items-center text-sm text-gray-400">
+                    Showing <span id="resultCount">0</span> movies
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recommendations Section -->
+    <section class="py-12">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold mb-8 text-center">Movie Collection</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" id="movieGrid">
+                <!-- Loading placeholder -->
+                <div class="loading bg-gray-800 rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4">🎬</div>
+                    <div class="h-4 bg-gray-700 rounded mb-2"></div>
+                    <div class="h-3 bg-gray-700 rounded mb-4"></div>
+                    <div class="h-8 bg-gray-700 rounded"></div>
+                </div>
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="text-center mt-12">
+                <button id="loadMoreBtn" onclick="loadMoreMovies()" class="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-lg font-medium transition-colors">
+                    Load More Movies
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Movie Details Modal -->
+    <div id="movieModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div id="modalContent">
+                <!-- Modal content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive movie database with 150+ movies
+        const movies = [
+            // Action Movies
+            { id: 1, title: "The Dark Knight", year: 2008, genre: "action", rating: 9.0, director: "Christopher Nolan", cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart"], plot: "Batman faces his greatest challenge yet when the Joker wreaks havoc on Gotham City.", poster: "🦇" },
+            { id: 2, title: "Avengers: Endgame", year: 2019, genre: "action", rating: 8.4, director: "Russo Brothers", cast: ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"], plot: "The Avengers assemble once more to reverse Thanos' actions and restore balance.", poster: "⚡" },
+            { id: 3, title: "Mad Max: Fury Road", year: 2015, genre: "action", rating: 8.1, director: "George Miller", cast: ["Tom Hardy", "Charlize Theron", "Nicholas Hoult"], plot: "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler.", poster: "🚗" },
+            { id: 4, title: "John Wick", year: 2014, genre: "action", rating: 7.4, director: "Chad Stahelski", cast: ["Keanu Reeves", "Michael Nyqvist", "Alfie Allen"], plot: "An ex-hitman comes out of retirement to track down the gangsters who killed his dog.", poster: "🔫" },
+            { id: 5, title: "Die Hard", year: 1988, genre: "action", rating: 8.2, director: "John McTiernan", cast: ["Bruce Willis", "Alan Rickman", "Bonnie Bedelia"], plot: "A New York cop battles terrorists who have taken over a Los Angeles skyscraper.", poster: "💥" },
+            { id: 6, title: "Terminator 2", year: 1991, genre: "action", rating: 8.6, director: "James Cameron", cast: ["Arnold Schwarzenegger", "Linda Hamilton", "Edward Furlong"], plot: "A cyborg is sent back in time to protect John Connor from a more advanced terminator.", poster: "🤖" },
+            { id: 7, title: "The Matrix", year: 1999, genre: "action", rating: 8.7, director: "The Wachowskis", cast: ["Keanu Reeves", "Laurence Fishburne", "Carrie-Anne Moss"], plot: "A computer programmer discovers that reality as he knows it is actually a simulation.", poster: "🕶️" },
+            { id: 8, title: "Gladiator", year: 2000, genre: "action", rating: 8.5, director: "Ridley Scott", cast: ["Russell Crowe", "Joaquin Phoenix", "Connie Nielsen"], plot: "A former Roman general seeks revenge against the corrupt emperor who murdered his family.", poster: "⚔️" },
+            { id: 9, title: "Speed", year: 1994, genre: "action", rating: 7.3, director: "Jan de Bont", cast: ["Keanu Reeves", "Sandra Bullock", "Dennis Hopper"], plot: "A bus is rigged to explode if it drops below 50 mph in Los Angeles.", poster: "🚌" },
+            { id: 10, title: "Top Gun", year: 1986, genre: "action", rating: 6.9, director: "Tony Scott", cast: ["Tom Cruise", "Kelly McGillis", "Val Kilmer"], plot: "A hotshot Navy pilot competes at the elite Top Gun academy.", poster: "✈️" },
+
+            // Sci-Fi Movies
+            { id: 11, title: "Inception", year: 2010, genre: "sci-fi", rating: 8.8, director: "Christopher Nolan", cast: ["Leonardo DiCaprio", "Marion Cotillard", "Tom Hardy"], plot: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.", poster: "🌀" },
+            { id: 12, title: "Blade Runner 2049", year: 2017, genre: "sci-fi", rating: 8.0, director: "Denis Villeneuve", cast: ["Ryan Gosling", "Harrison Ford", "Ana de Armas"], plot: "A young blade runner discovers a secret that could plunge society into chaos.", poster: "🌆" },
+            { id: 13, title: "Interstellar", year: 2014, genre: "sci-fi", rating: 8.6, director: "Christopher Nolan", cast: ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain"], plot: "A team of explorers travel through a wormhole in space to save humanity.", poster: "🌌" },
+            { id: 14, title: "Ex Machina", year: 2014, genre: "sci-fi", rating: 7.7, director: "Alex Garland", cast: ["Domhnall Gleeson", "Alicia Vikander", "Oscar Isaac"], plot: "A programmer is invited to administer the Turing test to an intelligent humanoid robot.", poster: "🧠" },
+            { id: 15, title: "Dune", year: 2021, genre: "sci-fi", rating: 8.0, director: "Denis Villeneuve", cast: ["Timothée Chalamet", "Rebecca Ferguson", "Oscar Isaac"], plot: "A noble family becomes embroiled in a war for control over the galaxy's most valuable asset.", poster: "🏜️" },
+            { id: 16, title: "Alien", year: 1979, genre: "sci-fi", rating: 8.5, director: "Ridley Scott", cast: ["Sigourney Weaver", "Tom Skerritt", "John Hurt"], plot: "The crew of a commercial spacecraft encounters a deadly alien creature.", poster: "👽" },
+            { id: 17, title: "Star Wars", year: 1977, genre: "sci-fi", rating: 8.6, director: "George Lucas", cast: ["Mark Hamill", "Harrison Ford", "Carrie Fisher"], plot: "A young farm boy joins a rebellion against an evil galactic empire.", poster: "🌟" },
+            { id: 18, title: "E.T.", year: 1982, genre: "sci-fi", rating: 7.9, director: "Steven Spielberg", cast: ["Henry Thomas", "Drew Barrymore", "Peter Coyote"], plot: "A young boy befriends an extraterrestrial stranded on Earth.", poster: "🛸" },
+            { id: 19, title: "2001: A Space Odyssey", year: 1968, genre: "sci-fi", rating: 8.3, director: "Stanley Kubrick", cast: ["Keir Dullea", "Gary Lockwood", "William Sylvester"], plot: "Humanity finds a mysterious object buried beneath the lunar surface.", poster: "🚀" },
+            { id: 20, title: "Arrival", year: 2016, genre: "sci-fi", rating: 7.9, director: "Denis Villeneuve", cast: ["Amy Adams", "Jeremy Renner", "Forest Whitaker"], plot: "A linguist works with the military to communicate with alien visitors.", poster: "🛸" },
+
+            // Comedy Movies
+            { id: 21, title: "The Hangover", year: 2009, genre: "comedy", rating: 7.7, director: "Todd Phillips", cast: ["Bradley Cooper", "Ed Helms", "Zach Galifianakis"], plot: "Three friends wake up from a bachelor party with no memory and a missing groom.", poster: "🍻" },
+            { id: 22, title: "Superbad", year: 2007, genre: "comedy", rating: 7.6, director: "Greg Mottola", cast: ["Jonah Hill", "Michael Cera", "Christopher Mintz-Plasse"], plot: "Two co-dependent high school seniors are forced to deal with separation anxiety.", poster: "😂" },
+            { id: 23, title: "Anchorman", year: 2004, genre: "comedy", rating: 7.2, director: "Adam McKay", cast: ["Will Ferrell", "Christina Applegate", "Paul Rudd"], plot: "A 1970s San Diego news anchor's life changes when an ambitious reporter arrives.", poster: "📺" },
+            { id: 24, title: "Borat", year: 2006, genre: "comedy", rating: 7.3, director: "Larry Charles", cast: ["Sacha Baron Cohen", "Ken Davitian", "Luenell"], plot: "A Kazakh journalist travels to America to make a documentary.", poster: "🎬" },
+            { id: 25, title: "Groundhog Day", year: 1993, genre: "comedy", rating: 8.0, director: "Harold Ramis", cast: ["Bill Murray", "Andie MacDowell", "Chris Elliott"], plot: "A weatherman finds himself living the same day over and over again.", poster: "🐹" },
+            { id: 26, title: "Dumb and Dumber", year: 1994, genre: "comedy", rating: 7.3, director: "Peter Farrelly", cast: ["Jim Carrey", "Jeff Daniels", "Lauren Holly"], plot: "Two dim-witted friends embark on a cross-country trip to return a briefcase.", poster: "🤪" },
+            { id: 27, title: "The Big Lebowski", year: 1998, genre: "comedy", rating: 8.1, director: "Coen Brothers", cast: ["Jeff Bridges", "John Goodman", "Julianne Moore"], plot: "A laid-back bowler gets caught up in a kidnapping scheme.", poster: "🎳" },
+            { id: 28, title: "Ghostbusters", year: 1984, genre: "comedy", rating: 7.8, director: "Ivan Reitman", cast: ["Bill Murray", "Dan Aykroyd", "Sigourney Weaver"], plot: "Three parapsychologists start a ghost removal service in New York City.", poster: "👻" },
+            { id: 29, title: "Coming to America", year: 1988, genre: "comedy", rating: 7.1, director: "John Landis", cast: ["Eddie Murphy", "Arsenio Hall", "Shari Headley"], plot: "An African prince travels to America to find a wife.", poster: "👑" },
+            { id: 30, title: "Zoolander", year: 2001, genre: "comedy", rating: 6.5, director: "Ben Stiller", cast: ["Ben Stiller", "Owen Wilson", "Christine Taylor"], plot: "A dim-witted male model becomes involved in an assassination plot.", poster: "📸" },
+
+            // Drama Movies
+            { id: 31, title: "The Shawshank Redemption", year: 1994, genre: "drama", rating: 9.3, director: "Frank Darabont", cast: ["Tim Robbins", "Morgan Freeman", "Bob Gunton"], plot: "Two imprisoned men bond over years, finding solace and redemption through acts of decency.", poster: "🏛️" },
+            { id: 32, title: "The Godfather", year: 1972, genre: "drama", rating: 9.2, director: "Francis Ford Coppola", cast: ["Marlon Brando", "Al Pacino", "James Caan"], plot: "The aging patriarch of an organized crime dynasty transfers control to his reluctant son.", poster: "👑" },
+            { id: 33, title: "Pulp Fiction", year: 1994, genre: "drama", rating: 8.9, director: "Quentin Tarantino", cast: ["John Travolta", "Uma Thurman", "Samuel L. Jackson"], plot: "The lives of two mob hitmen, a boxer, and others intertwine in this crime drama.", poster: "💼" },
+            { id: 34, title: "Forrest Gump", year: 1994, genre: "drama", rating: 8.8, director: "Robert Zemeckis", cast: ["Tom Hanks", "Robin Wright", "Gary Sinise"], plot: "The presidencies of Kennedy and Johnson through the eyes of an Alabama man with an IQ of 75.", poster: "🪶" },
+            { id: 35, title: "Goodfellas", year: 1990, genre: "drama", rating: 8.7, director: "Martin Scorsese", cast: ["Robert De Niro", "Ray Liotta", "Joe Pesci"], plot: "The story of Henry Hill and his life in the mob, covering his relationship with his wife.", poster: "🍝" },
+            { id: 36, title: "12 Years a Slave", year: 2013, genre: "drama", rating: 8.1, director: "Steve McQueen", cast: ["Chiwetel Ejiofor", "Michael Fassbender", "Lupita Nyong'o"], plot: "A free black man from New York is abducted and sold into slavery in the South.", poster: "⛓️" },
+            { id: 37, title: "Schindler's List", year: 1993, genre: "drama", rating: 9.0, director: "Steven Spielberg", cast: ["Liam Neeson", "Ralph Fiennes", "Ben Kingsley"], plot: "A German industrialist saves over a thousand Jewish lives during the Holocaust.", poster: "🕯️" },
+            { id: 38, title: "One Flew Over the Cuckoo's Nest", year: 1975, genre: "drama", rating: 8.7, director: "Milos Forman", cast: ["Jack Nicholson", "Louise Fletcher", "Danny DeVito"], plot: "A criminal pleads insanity and is admitted to a mental institution.", poster: "🏥" },
+            { id: 39, title: "The Departed", year: 2006, genre: "drama", rating: 8.5, director: "Martin Scorsese", cast: ["Leonardo DiCaprio", "Matt Damon", "Jack Nicholson"], plot: "An undercover cop and a police informant try to identify each other.", poster: "🕵️" },
+            { id: 40, title: "There Will Be Blood", year: 2007, genre: "drama", rating: 8.2, director: "Paul Thomas Anderson", cast: ["Daniel Day-Lewis", "Paul Dano", "Ciaran Hinds"], plot: "A ruthless oil prospector's greed leads to his downfall.", poster: "🛢️" },
+
+            // Horror Movies
+            { id: 41, title: "Get Out", year: 2017, genre: "horror", rating: 7.7, director: "Jordan Peele", cast: ["Daniel Kaluuya", "Allison Williams", "Catherine Keener"], plot: "A young African-American visits his white girlfriend's parents for the weekend.", poster: "👁️" },
+            { id: 42, title: "Hereditary", year: 2018, genre: "horror", rating: 7.3, director: "Ari Aster", cast: ["Toni Collette", "Milly Shapiro", "Gabriel Byrne"], plot: "A family is haunted by tragedy and begins to unravel dark secrets.", poster: "👻" },
+            { id: 43, title: "The Conjuring", year: 2013, genre: "horror", rating: 7.5, director: "James Wan", cast: ["Patrick Wilson", "Vera Farmiga", "Ron Livingston"], plot: "Paranormal investigators help a family terrorized by a dark presence in their farmhouse.", poster: "🏚️" },
+            { id: 44, title: "A Quiet Place", year: 2018, genre: "horror", rating: 7.5, director: "John Krasinski", cast: ["Emily Blunt", "John Krasinski", "Millicent Simmonds"], plot: "A family lives in silence to avoid creatures that hunt by sound.", poster: "🤫" },
+            { id: 45, title: "The Exorcist", year: 1973, genre: "horror", rating: 8.1, director: "William Friedkin", cast: ["Ellen Burstyn", "Max von Sydow", "Linda Blair"], plot: "A mother seeks help from two priests to save her daughter from demonic possession.", poster: "😈" },
+            { id: 46, title: "Halloween", year: 1978, genre: "horror", rating: 7.7, director: "John Carpenter", cast: ["Jamie Lee Curtis", "Donald Pleasence", "Tony Moran"], plot: "A psychotic killer stalks teenagers on Halloween night.", poster: "🎃" },
+            { id: 47, title: "The Shining", year: 1980, genre: "horror", rating: 8.4, director: "Stanley Kubrick", cast: ["Jack Nicholson", "Shelley Duvall", "Danny Lloyd"], plot: "A writer's sanity deteriorates while staying at an isolated hotel with his family.", poster: "🪓" },
+            { id: 48, title: "Psycho", year: 1960, genre: "horror", rating: 8.5, director: "Alfred Hitchcock", cast: ["Anthony Perkins", "Janet Leigh", "Vera Miles"], plot: "A secretary embezzles money and encounters a disturbed motel owner.", poster: "🚿" },
+            { id: 49, title: "Scream", year: 1996, genre: "horror", rating: 7.4, director: "Wes Craven", cast: ["Neve Campbell", "Courteney Cox", "David Arquette"], plot: "A masked killer terrorizes high school students in a small town.", poster: "☎️" },
+            { id: 50, title: "The Texas Chain Saw Massacre", year: 1974, genre: "horror", rating: 7.5, director: "Tobe Hooper", cast: ["Marilyn Burns", "Edwin Neal", "Allen Danziger"], plot: "Five friends encounter a family of cannibals in rural Texas.", poster: "🪚" },
+
+            // Romance Movies
+            { id: 51, title: "The Notebook", year: 2004, genre: "romance", rating: 7.8, director: "Nick Cassavetes", cast: ["Ryan Gosling", "Rachel McAdams", "James Garner"], plot: "A poor yet passionate young man falls in love with a rich young woman.", poster: "💕" },
+            { id: 52, title: "Titanic", year: 1997, genre: "romance", rating: 7.9, director: "James Cameron", cast: ["Leonardo DiCaprio", "Kate Winslet", "Billy Zane"], plot: "A seventeen-year-old aristocrat falls in love with a poor artist aboard the Titanic.", poster: "🚢" },
+            { id: 53, title: "Casablanca", year: 1942, genre: "romance", rating: 8.5, director: "Michael Curtiz", cast: ["Humphrey Bogart", "Ingrid Bergman", "Paul Henreid"], plot: "A cynical American expatriate struggles to decide whether to help his former lover escape.", poster: "🌹" },
+            { id: 54, title: "The Princess Bride", year: 1987, genre: "romance", rating: 8.0, director: "Rob Reiner", cast: ["Cary Elwes", "Robin Wright", "Mandy Patinkin"], plot: "A farmhand must rescue his true love from an odious prince.", poster: "⚔️" },
+            { id: 55, title: "Eternal Sunshine of the Spotless Mind", year: 2004, genre: "romance", rating: 8.3, director: "Michel Gondry", cast: ["Jim Carrey", "Kate Winslet", "Kirsten Dunst"], plot: "A couple undergo a procedure to erase each other from their memories.", poster: "🧠" },
+            { id: 56, title: "La La Land", year: 2016, genre: "romance", rating: 8.0, director: "Damien Chazelle", cast: ["Ryan Gosling", "Emma Stone", "John Legend"], plot: "A jazz musician and an aspiring actress meet and fall in love in Los Angeles.", poster: "🎵" },
+            { id: 57, title: "When Harry Met Sally", year: 1989, genre: "romance", rating: 7.7, director: "Rob Reiner", cast: ["Billy Crystal", "Meg Ryan", "Carrie Fisher"], plot: "Two friends debate whether men and women can be just friends.", poster: "☕" },
+            { id: 58, title: "Ghost", year: 1990, genre: "romance", rating: 7.1, director: "Jerry Zucker", cast: ["Patrick Swayze", "Demi Moore", "Whoopi Goldberg"], plot: "A murdered man's spirit tries to communicate with his girlfriend.", poster: "👻" },
+            { id: 59, title: "Dirty Dancing", year: 1987, genre: "romance", rating: 7.0, director: "Emile Ardolino", cast: ["Jennifer Grey", "Patrick Swayze", "Cynthia Rhodes"], plot: "A young woman falls in love with a dance instructor at a resort.", poster: "💃" },
+            { id: 60, title: "Pretty Woman", year: 1990, genre: "romance", rating: 7.0, director: "Garry Marshall", cast: ["Richard Gere", "Julia Roberts", "Ralph Bellamy"], plot: "A businessman falls in love with a prostitute he hires as an escort.", poster: "👠" },
+
+            // Thriller Movies
+            { id: 61, title: "Se7en", year: 1995, genre: "thriller", rating: 8.6, director: "David Fincher", cast: ["Morgan Freeman", "Brad Pitt", "Kevin Spacey"], plot: "Two detectives hunt a serial killer who uses the seven deadly sins as his motives.", poster: "🔪" },
+            { id: 62, title: "The Silence of the Lambs", year: 1991, genre: "thriller", rating: 8.6, director: "Jonathan Demme", cast: ["Jodie Foster", "Anthony Hopkins", "Scott Glenn"], plot: "An FBI cadet must gain the trust of imprisoned cannibal Hannibal Lecter.", poster: "🦋" },
+            { id: 63, title: "Gone Girl", year: 2014, genre: "thriller", rating: 8.1, director: "David Fincher", cast: ["Ben Affleck", "Rosamund Pike", "Neil Patrick Harris"], plot: "A husband becomes the prime suspect when his wife disappears on their anniversary.", poster: "🔍" },
+            { id: 64, title: "Shutter Island", year: 2010, genre: "thriller", rating: 8.2, director: "Martin Scorsese", cast: ["Leonardo DiCaprio", "Mark Ruffalo", "Ben Kingsley"], plot: "A U.S. Marshal investigates the disappearance of a patient from a psychiatric facility.", poster: "🏝️" },
+            { id: 65, title: "Zodiac", year: 2007, genre: "thriller", rating: 7.7, director: "David Fincher", cast: ["Jake Gyllenhaal", "Mark Ruffalo", "Robert Downey Jr."], plot: "The story of the hunt for the Zodiac Killer in San Francisco.", poster: "🔤" },
+            { id: 66, title: "No Country for Old Men", year: 2007, genre: "thriller", rating: 8.2, director: "Coen Brothers", cast: ["Tommy Lee Jones", "Javier Bardem", "Josh Brolin"], plot: "A hunter stumbles upon drug money and is pursued by a relentless killer.", poster: "💰" },
+            { id: 67, title: "Heat", year: 1995, genre: "thriller", rating: 8.3, director: "Michael Mann", cast: ["Al Pacino", "Robert De Niro", "Val Kilmer"], plot: "A group of professional bank robbers are pursued by a dedicated police detective.", poster: "🔥" },
+            { id: 68, title: "The Fugitive", year: 1993, genre: "thriller", rating: 7.8, director: "Andrew Davis", cast: ["Harrison Ford", "Tommy Lee Jones", "Sela Ward"], plot: "A doctor wrongly convicted of murder escapes custody to find the real killer.", poster: "🏃" },
+            { id: 69, title: "North by Northwest", year: 1959, genre: "thriller", rating: 8.3, director: "Alfred Hitchcock", cast: ["Cary Grant", "Eva Marie Saint", "James Mason"], plot: "An advertising executive is mistaken for a government agent by foreign spies.", poster: "🚁" },
+            { id: 70, title: "Vertigo", year: 1958, genre: "thriller", rating: 8.3, director: "Alfred Hitchcock", cast: ["James Stewart", "Kim Novak", "Barbara Bel Geddes"], plot: "A detective with acrophobia investigates the strange activities of an old friend's wife.", poster: "🌀" },
+
+            // Animation Movies
+            { id: 71, title: "Toy Story", year: 1995, genre: "animation", rating: 8.3, director: "John Lasseter", cast: ["Tom Hanks", "Tim Allen", "Don Rickles"], plot: "A cowboy doll is profoundly threatened when a new spaceman figure supplants him as top toy.", poster: "🤠" },
+            { id: 72, title: "Finding Nemo", year: 2003, genre: "animation", rating: 8.2, director: "Andrew Stanton", cast: ["Albert Brooks", "Ellen DeGeneres", "Alexander Gould"], plot: "A clown fish searches for his missing son with the help of a regal blue tang.", poster: "🐠" },
+            { id: 73, title: "The Lion King", year: 1994, genre: "animation", rating: 8.5, director: "Roger Allers", cast: ["Matthew Broderick", "Jeremy Irons", "James Earl Jones"], plot: "A young lion prince flees his kingdom after his father's murder.", poster: "🦁" },
+            { id: 74, title: "Spirited Away", year: 2001, genre: "animation", rating: 9.3, director: "Hayao Miyazaki", cast: ["Rumi Hiiragi", "Miyu Irino", "Mari Natsuki"], plot: "A girl enters a world ruled by gods and witches where humans are changed into beasts.", poster: "🐉" },
+            { id: 75, title: "WALL-E", year: 2008, genre: "animation", rating: 8.4, director: "Andrew Stanton", cast: ["Ben Burtt", "Elissa Knight", "Jeff Garlin"], plot: "A robot left to clean a deserted Earth meets another robot and follows her across the galaxy.", poster: "🤖" },
+            { id: 76, title: "Up", year: 2009, genre: "animation", rating: 8.3, director: "Pete Docter", cast: ["Ed Asner", "Christopher Plummer", "Jordan Nagai"], plot: "An elderly man travels to South America in his house equipped with balloons.", poster: "🎈" },
+            { id: 77, title: "Inside Out", year: 2015, genre: "animation", rating: 8.1, director: "Pete Docter", cast: ["Amy Poehler", "Bill Hader", "Lewis Black"], plot: "The emotions of a young girl struggle to adapt when she moves to a new city.", poster: "😊" },
+            { id: 78, title: "Frozen", year: 2013, genre: "animation", rating: 7.4, director: "Chris Buck", cast: ["Kristen Bell", "Idina Menzel", "Jonathan Groff"], plot: "A princess with ice powers accidentally traps her kingdom in eternal winter.", poster: "❄️" },
+            { id: 79, title: "Shrek", year: 2001, genre: "animation", rating: 7.9, director: "Andrew Adamson", cast: ["Mike Myers", "Eddie Murphy", "Cameron Diaz"], plot: "An ogre's peaceful existence is shattered when fairy tale creatures invade his swamp.", poster: "👹" },
+            { id: 80, title: "Monsters, Inc.", year: 2001, genre: "animation", rating: 8.1, director: "Pete Docter", cast: ["John Goodman", "Billy Crystal", "Mary Gibbs"], plot: "Monsters generate their city's power by scaring children, but they're terrified that the children may contaminate them.", poster: "👹" },
+
+            // Fantasy Movies
+            { id: 81, title: "The Lord of the Rings: The Fellowship of the Ring", year: 2001, genre: "fantasy", rating: 8.8, director: "Peter Jackson", cast: ["Elijah Wood", "Ian McKellen", "Orlando Bloom"], plot: "A hobbit and his companions set out to destroy a powerful ring.", poster: "💍" },
+            { id: 82, title: "Harry Potter and the Philosopher's Stone", year: 2001, genre: "fantasy", rating: 7.6, director: "Chris Columbus", cast: ["Daniel Radcliffe", "Rupert Grint", "Emma Watson"], plot: "A young wizard discovers his magical heritage on his 11th birthday.", poster: "⚡" },
+            { id: 83, title: "Pan's Labyrinth", year: 2006, genre: "fantasy", rating: 8.2, director: "Guillermo del Toro", cast: ["Ivana Baquero", "Ariadna Gil", "Sergi López"], plot: "A young girl escapes into a fantasy world during the Spanish Civil War.", poster: "🧚" },
+            { id: 84, title: "The Shape of Water", year: 2017, genre: "fantasy", rating: 7.3, director: "Guillermo del Toro", cast: ["Sally Hawkins", "Octavia Spencer", "Michael Shannon"], plot: "A mute woman falls in love with an amphibious creature.", poster: "🐸" },
+            { id: 85, title: "Big Fish", year: 2003, genre: "fantasy", rating: 8.0, director: "Tim Burton", cast: ["Ewan McGregor", "Albert Finney", "Billy Crudup"], plot: "A son tries to learn more about his dying father by reliving stories and myths.", poster: "🐟" },
+            { id: 86, title: "The Chronicles of Narnia", year: 2005, genre: "fantasy", rating: 6.9, director: "Andrew Adamson", cast: ["Georgie Henley", "Skandar Keynes", "William Moseley"], plot: "Four children discover a magical world inside a wardrobe.", poster: "🦁" },
+            { id: 87, title: "Edward Scissorhands", year: 1990, genre: "fantasy", rating: 7.9, director: "Tim Burton", cast: ["Johnny Depp", "Winona Ryder", "Dianne Wiest"], plot: "An artificial man with scissors for hands is taken in by a suburban family.", poster: "✂️" },
+            { id: 88, title: "The NeverEnding Story", year: 1984, genre: "fantasy", rating: 7.4, director: "Wolfgang Petersen", cast: ["Noah Hathaway", "Barret Oliver", "Tami Stronach"], plot: "A boy reads a magical book that tells a story of a young warrior.", poster: "📖" },
+            { id: 89, title: "Labyrinth", year: 1986, genre: "fantasy", rating: 7.4, director: "Jim Henson", cast: ["David Bowie", "Jennifer Connelly", "Toby Froud"], plot: "A teenage girl must navigate a labyrinth to rescue her baby brother.", poster: "🎭" },
+            { id: 90, title: "The Dark Crystal", year: 1982, genre: "fantasy", rating: 7.1, director: "Jim Henson", cast: ["Jim Henson", "Kathryn Mullen", "Frank Oz"], plot: "A Gelfling embarks on a quest to restore balance to his alien world.", poster: "💎" },
+
+            // Crime Movies
+            { id: 91, title: "The Godfather Part II", year: 1974, genre: "crime", rating: 9.0, director: "Francis Ford Coppola", cast: ["Al Pacino", "Robert Duvall", "Diane Keaton"], plot: "The continuing saga of the Corleone crime family tells parallel stories.", poster: "👑" },
+            { id: 92, title: "Scarface", year: 1983, genre: "crime", rating: 8.3, director: "Brian De Palma", cast: ["Al Pacino", "Michelle Pfeiffer", "Steven Bauer"], plot: "A Cuban immigrant becomes a powerful drug lord in Miami.", poster: "💰" },
+            { id: 93, title: "Casino", year: 1995, genre: "crime", rating: 8.2, director: "Martin Scorsese", cast: ["Robert De Niro", "Sharon Stone", "Joe Pesci"], plot: "A gambling handicapper and mob enforcer's friendship is tested in Las Vegas.", poster: "🎰" },
+            { id: 94, title: "The Untouchables", year: 1987, genre: "crime", rating: 7.9, director: "Brian De Palma", cast: ["Kevin Costner", "Sean Connery", "Robert De Niro"], plot: "Federal agent Eliot Ness sets out to stop Al Capone.", poster: "🕵️" },
+            { id: 95, title: "Donnie Brasco", year: 1997, genre: "crime", rating: 7.7, director: "Mike Newell", cast: ["Al Pacino", "Johnny Depp", "Michael Madsen"], plot: "An FBI undercover agent infiltrates the mob and finds himself identifying more with the mafia life.", poster: "🕴️" },
+            { id: 96, title: "The Long Good Friday", year: 1980, genre: "crime", rating: 7.6, director: "John Mackenzie", cast: ["Bob Hoskins", "Helen Mirren", "Dave King"], plot: "A gangster's empire begins to crumble when his associates are systematically murdered.", poster: "🔫" },
+            { id: 97, title: "Miller's Crossing", year: 1990, genre: "crime", rating: 7.7, director: "Coen Brothers", cast: ["Gabriel Byrne", "Marcia Gay Harden", "John Turturro"], plot: "An advisor to a Prohibition-era crime boss struggles with divided loyalties.", poster: "🎩" },
+            { id: 98, title: "Once Upon a Time in America", year: 1984, genre: "crime", rating: 8.3, director: "Sergio Leone", cast: ["Robert De Niro", "James Woods", "Elizabeth McGovern"], plot: "A former Prohibition-era Jewish-American mobster returns to Brooklyn.", poster: "🏙️" },
+            { id: 99, title: "The French Connection", year: 1971, genre: "crime", rating: 7.7, director: "William Friedkin", cast: ["Gene Hackman", "Fernando Rey", "Roy Scheider"], plot: "A pair of NYC cops in the Narcotics Bureau stumble onto a drug smuggling job.", poster: "🚗" },
+            { id: 100, title: "Serpico", year: 1973, genre: "crime", rating: 7.7, director: "Sidney Lumet", cast: ["Al Pacino", "John Randolph", "Jack Kehoe"], plot: "An honest New York cop named Frank Serpico blows the whistle on rampant corruption.", poster: "👮" },
+
+            // Adventure Movies
+            { id: 101, title: "Indiana Jones: Raiders of the Lost Ark", year: 1981, genre: "adventure", rating: 8.5, director: "Steven Spielberg", cast: ["Harrison Ford", "Karen Allen", "Paul Freeman"], plot: "An archaeologist races to find the Ark of the Covenant before the Nazis.", poster: "🎩" },
+            { id: 102, title: "Pirates of the Caribbean", year: 2003, genre: "adventure", rating: 8.1, director: "Gore Verbinski", cast: ["Johnny Depp", "Geoffrey Rush", "Orlando Bloom"], plot: "A blacksmith teams up with an eccentric pirate to rescue his love.", poster: "🏴‍☠️" },
+            { id: 103, title: "The Princess Bride", year: 1987, genre: "adventure", rating: 8.0, director: "Rob Reiner", cast: ["Cary Elwes", "Robin Wright", "Mandy Patinkin"], plot: "A farmhand must rescue his true love from an odious prince.", poster: "⚔️" },
+            { id: 104, title: "The Goonies", year: 1985, genre: "adventure", rating: 7.7, director: "Richard Donner", cast: ["Sean Astin", "Josh Brolin", "Jeff Cohen"], plot: "A group of kids search for pirate treasure to save their homes.", poster: "💎" },
+            { id: 105, title: "Jurassic Park", year: 1993, genre: "adventure", rating: 8.2, director: "Steven Spielberg", cast: ["Sam Neill", "Laura Dern", "Jeff Goldblum"], plot: "Scientists visit a remote island where dinosaurs have been brought back to life.", poster: "🦕" },
+            { id: 106, title: "Back to the Future", year: 1985, genre: "adventure", rating: 8.5, director: "Robert Zemeckis", cast: ["Michael J. Fox", "Christopher Lloyd", "Lea Thompson"], plot: "A teenager is accidentally sent back in time and must ensure his parents fall in love.", poster: "⏰" },
+            { id: 107, title: "The Mummy", year: 1999, genre: "adventure", rating: 7.1, director: "Stephen Sommers", cast: ["Brendan Fraser", "Rachel Weisz", "John Hannah"], plot: "An ancient Egyptian priest is accidentally resurrected in the 20th century.", poster: "🏺" },
+            { id: 108, title: "National Treasure", year: 2004, genre: "adventure", rating: 6.9, director: "Jon Turteltaub", cast: ["Nicolas Cage", "Diane Kruger", "Sean Bean"], plot: "A historian races to find a legendary treasure before criminals do.", poster: "🗺️" },
+            { id: 109, title: "The Jungle Book", year: 2016, genre: "adventure", rating: 7.4, director: "Jon Favreau", cast: ["Neel Sethi", "Bill Murray", "Ben Kingsley"], plot: "A human child raised by wolves must leave his pack when a tiger threatens him.", poster: "🐺" },
+            { id: 110, title: "Treasure Island", year: 1950, genre: "adventure", rating: 6.9, director: "Byron Haskin", cast: ["Bobby Driscoll", "Robert Newton", "Basil Sydney"], plot: "A young boy searches for treasure with the help of a one-legged pirate.", poster: "🏴‍☠️" },
+
+            // Mystery Movies
+            { id: 111, title: "The Sixth Sense", year: 1999, genre: "mystery", rating: 8.2, director: "M. Night Shyamalan", cast: ["Bruce Willis", "Haley Joel Osment", "Toni Collette"], plot: "A child psychologist treats a boy who claims he can see dead people.", poster: "👻" },
+            { id: 112, title: "The Usual Suspects", year: 1995, genre: "mystery", rating: 8.5, director: "Bryan Singer", cast: ["Kevin Spacey", "Gabriel Byrne", "Chazz Palminteri"], plot: "A sole survivor tells of the twisty events leading up to a horrific gun battle.", poster: "🕵️" },
+            { id: 113, title: "Memento", year: 2000, genre: "mystery", rating: 8.4, director: "Christopher Nolan", cast: ["Guy Pearce", "Carrie-Anne Moss", "Joe Pantoliano"], plot: "A man with short-term memory loss attempts to track down his wife's murderer.", poster: "📷" },
+            { id: 114, title: "The Prestige", year: 2006, genre: "mystery", rating: 8.5, director: "Christopher Nolan", cast: ["Christian Bale", "Hugh Jackman", "Scarlett Johansson"], plot: "Two magicians engage in a bitter rivalry that leads to tragic consequences.", poster: "🎩" },
+            { id: 115, title: "Rear Window", year: 1954, genre: "mystery", rating: 8.5, director: "Alfred Hitchcock", cast: ["James Stewart", "Grace Kelly", "Wendell Corey"], plot: "A photographer in a wheelchair spies on his neighbors and becomes convinced one is a murderer.", poster: "🔍" },
+            { id: 116, title: "Chinatown", year: 1974, genre: "mystery", rating: 8.2, director: "Roman Polanski", cast: ["Jack Nicholson", "Faye Dunaway", "John Huston"], plot: "A private detective investigating an adultery case stumbles into a web of deceit.", poster: "🕵️" },
+            { id: 117, title: "The Maltese Falcon", year: 1941, genre: "mystery", rating: 7.9, director: "John Huston", cast: ["Humphrey Bogart", "Mary Astor", "Gladys George"], plot: "A private detective takes on a case that involves him with three eccentric criminals.", poster: "🦅" },
+            { id: 118, title: "L.A. Confidential", year: 1997, genre: "mystery", rating: 8.2, director: "Curtis Hanson", cast: ["Kevin Spacey", "Russell Crowe", "Guy Pearce"], plot: "Three policemen investigate a series of murders in 1950s Los Angeles.", poster: "🌴" },
+            { id: 119, title: "The Third Man", year: 1949, genre: "mystery", rating: 8.1, director: "Carol Reed", cast: ["Joseph Cotten", "Alida Valli", "Orson Welles"], plot: "A writer investigates the mysterious death of his friend in post-war Vienna.", poster: "🎡" },
+            { id: 120, title: "Knives Out", year: 2019, genre: "mystery", rating: 7.9, director: "Rian Johnson", cast: ["Daniel Craig", "Chris Evans", "Ana de Armas"], plot: "A detective investigates the death of a patriarch of an eccentric family.", poster: "🔪" },
+
+            // War Movies
+            { id: 121, title: "Saving Private Ryan", year: 1998, genre: "war", rating: 8.6, director: "Steven Spielberg", cast: ["Tom Hanks", "Matt Damon", "Tom Sizemore"], plot: "Following the Normandy Landings, a group of soldiers go behind enemy lines to retrieve a paratrooper.", poster: "🪖" },
+            { id: 122, title: "Apocalypse Now", year: 1979, genre: "war", rating: 8.4, director: "Francis Ford Coppola", cast: ["Martin Sheen", "Marlon Brando", "Robert Duvall"], plot: "A U.S. Army officer is sent to assassinate a colonel who has set himself up as a god.", poster: "🚁" },
+            { id: 123, title: "Full Metal Jacket", year: 1987, genre: "war", rating: 8.3, director: "Stanley Kubrick", cast: ["Matthew Modine", "R. Lee Ermey", "Vincent D'Onofrio"], plot: "A pragmatic U.S. Marine observes the dehumanizing effects of the Vietnam War.", poster: "🎖️" },
+            { id: 124, title: "Platoon", year: 1986, genre: "war", rating: 8.1, director: "Oliver Stone", cast: ["Charlie Sheen", "Tom Berenger", "Willem Dafoe"], plot: "A young soldier in Vietnam faces a moral crisis when confronted with the horrors of war.", poster: "🌿" },
+            { id: 125, title: "The Deer Hunter", year: 1978, genre: "war", rating: 8.1, director: "Michael Cimino", cast: ["Robert De Niro", "Christopher Walken", "Meryl Streep"], plot: "An in-depth examination of the ways in which the Vietnam War impacts the lives of people in a small industrial town.", poster: "🦌" },
+            { id: 126, title: "Born on the Fourth of July", year: 1989, genre: "war", rating: 7.2, director: "Oliver Stone", cast: ["Tom Cruise", "Bryan Larkin", "Raymond J. Barry"], plot: "The biography of Ron Kovic, paralyzed in the Vietnam War, who becomes an anti-war activist.", poster: "🇺🇸" },
+            { id: 127, title: "Black Hawk Down", year: 2001, genre: "war", rating: 7.7, director: "Ridley Scott", cast: ["Josh Hartnett", "Ewan McGregor", "Tom Sizemore"], plot: "U.S. soldiers are trapped in Somalia after their mission goes wrong.", poster: "🚁" },
+            { id: 128, title: "We Were Soldiers", year: 2002, genre: "war", rating: 7.2, director: "Randall Wallace", cast: ["Mel Gibson", "Madeleine Stowe", "Greg Kinnear"], plot: "The story of the first major battle of the American phase of the Vietnam War.", poster: "⚔️" },
+            { id: 129, title: "The Thin Red Line", year: 1998, genre: "war", rating: 7.6, director: "Terrence Malick", cast: ["Jim Caviezel", "Sean Penn", "Nick Nolte"], plot: "U.S. forces assault Japanese positions on Guadalcanal during World War II.", poster: "🌺" },
+            { id: 130, title: "Hacksaw Ridge", year: 2016, genre: "war", rating: 8.1, director: "Mel Gibson", cast: ["Andrew Garfield", "Sam Worthington", "Luke Bracey"], plot: "A conscientious objector serves as a medic during the Battle of Okinawa.", poster: "⛑️" },
+
+            // Western Movies
+            { id: 131, title: "The Good, the Bad and the Ugly", year: 1966, genre: "western", rating: 8.8, director: "Sergio Leone", cast: ["Clint Eastwood", "Lee Van Cleef", "Eli Wallach"], plot: "A bounty hunting scam joins two men in an uneasy alliance against a third.", poster: "🤠" },
+            { id: 132, title: "Unforgiven", year: 1992, genre: "western", rating: 8.2, director: "Clint Eastwood", cast: ["Clint Eastwood", "Gene Hackman", "Morgan Freeman"], plot: "A retired gunslinger reluctantly takes on one last job.", poster: "🔫" },
+            { id: 133, title: "Butch Cassidy and the Sundance Kid", year: 1969, genre: "western", rating: 8.1, director: "George Roy Hill", cast: ["Paul Newman", "Robert Redford", "Katharine Ross"], plot: "Two Western bank/train robbers flee to South America when the law gets too close.", poster: "🏇" },
+            { id: 134, title: "The Magnificent Seven", year: 1960, genre: "western", rating: 7.7, director: "John Sturges", cast: ["Yul Brynner", "Steve McQueen", "Charles Bronson"], plot: "Seven gunmen protect a small Mexican village from bandits.", poster: "7️⃣" },
+            { id: 135, title: "True Grit", year: 2010, genre: "western", rating: 7.6, director: "Coen Brothers", cast: ["Jeff Bridges", "Matt Damon", "Hailee Steinfeld"], plot: "A stubborn teenager enlists the help of a tough U.S. Marshal to track down her father's murderer.", poster: "👧" },
+            { id: 136, title: "Tombstone", year: 1993, genre: "western", rating: 7.8, director: "George P. Cosmatos", cast: ["Kurt Russell", "Val Kilmer", "Sam Elliott"], plot: "A successful lawman's plans to retire are disrupted by a violent gang.", poster: "💀" },
+            { id: 137, title: "Dances with Wolves", year: 1990, genre: "western", rating: 8.0, director: "Kevin Costner", cast: ["Kevin Costner", "Mary McDonnell", "Graham Greene"], plot: "A Civil War soldier develops a relationship with a band of Lakota Indians.", poster: "🐺" },
+            { id: 138, title: "The Wild Bunch", year: 1969, genre: "western", rating: 7.9, director: "Sam Peckinpah", cast: ["William Holden", "Ernest Borgnine", "Robert Ryan"], plot: "An aging group of outlaws look for one last big score.", poster: "🌵" },
+            { id: 139, title: "High Noon", year: 1952, genre: "western", rating: 7.9, director: "Fred Zinnemann", cast: ["Gary Cooper", "Grace Kelly", "Thomas Mitchell"], plot: "A town Marshal must face a gang of killers by himself.", poster: "🕐" },
+            { id: 140, title: "Rio Bravo", year: 1959, genre: "western", rating: 8.0, director: "Howard Hawks", cast: ["John Wayne", "Dean Martin", "Ricky Nelson"], plot: "A small-town sheriff enlists help to hold a murderer whose brother is leading a gang to free him.", poster: "🏜️" },
+
+            // Documentary Movies
+            { id: 141, title: "Free Solo", year: 2018, genre: "documentary", rating: 8.2, director: "Jimmy Chin", cast: ["Alex Honnold", "Tommy Caldwell", "Jimmy Chin"], plot: "A documentary following rock climber Alex Honnold as he prepares to climb El Capitan without ropes.", poster: "🧗" },
+            { id: 142, title: "Won't You Be My Neighbor?", year: 2018, genre: "documentary", rating: 8.4, director: "Morgan Neville", cast: ["Fred Rogers", "Joanne Rogers", "John Rogers"], plot: "A documentary about the life and legacy of Fred Rogers, the beloved host of the children's television show.", poster: "📺" },
+            { id: 143, title: "March of the Penguins", year: 2005, genre: "documentary", rating: 7.5, director: "Luc Jacquet", cast: ["Morgan Freeman", "Romane Bohringer", "Charles Berling"], plot: "A documentary following the yearly journey of Emperor penguins in Antarctica.", poster: "🐧" },
+            { id: 144, title: "An Inconvenient Truth", year: 2006, genre: "documentary", rating: 7.4, director: "Davis Guggenheim", cast: ["Al Gore", "Billy West", "George Bush"], plot: "A documentary on Al Gore's campaign to make the issue of global warming a recognized problem.", poster: "🌍" },
+            { id: 145, title: "Bowling for Columbine", year: 2002, genre: "documentary", rating: 8.0, director: "Michael Moore", cast: ["Michael Moore", "Salvador Allende", "Mike Bradley"], plot: "Filmmaker Michael Moore explores the roots of America's predilection for gun violence.", poster: "🎳" },
+            { id: 146, title: "Super Size Me", year: 2004, genre: "documentary", rating: 7.3, director: "Morgan Spurlock", cast: ["Morgan Spurlock", "Daryl Isaacs", "Lisa Ganjhu"], plot: "A filmmaker eats only McDonald's food for 30 days to document the effects.", poster: "🍟" },
+            { id: 147, title: "Fahrenheit 9/11", year: 2004, genre: "documentary", rating: 7.5, director: "Michael Moore", cast: ["Michael Moore", "Ben Affleck", "Stevie Wonder"], plot: "Michael Moore's view on what happened to the United States after September 11.", poster: "🏢" },
+            { id: 148, title: "The Act of Killing", year: 2012, genre: "documentary", rating: 8.2, director: "Joshua Oppenheimer", cast: ["Anwar Congo", "Herman Koto", "Syamsul Arifin"], plot: "A documentary which challenges former Indonesian death-squad leaders to reenact their mass-killings.", poster: "🎭" },
+            { id: 149, title: "Blackfish", year: 2013, genre: "documentary", rating: 8.1, director: "Gabriela Cowperthwaite", cast: ["Tilikum", "Dave Duffus", "Samantha Berg"], plot: "A documentary following the controversial captivity of killer whales.", poster: "🐋" },
+            { id: 150, title: "Food, Inc.", year: 2008, genre: "documentary", rating: 7.8, director: "Robert Kenner", cast: ["Michael Pollan", "Eric Schlosser", "Richard Lobb"], plot: "An unflattering look inside America's corporate controlled food industry.", poster: "🌽" }
+        ];
+
+        let currentGenre = 'all';
+        let filteredMovies = [...movies];
+        let displayedMovies = [];
+        let moviesPerPage = 20;
+        let currentPage = 0;
+
+        function updateMovieCount() {
+            document.getElementById('movieCount').textContent = `${movies.length} movies in our collection`;
+            document.getElementById('resultCount').textContent = filteredMovies.length;
+        }
+
+        function renderMovies(moviesToRender = null, append = false) {
+            const movieGrid = document.getElementById('movieGrid');
+            
+            if (!append) {
+                movieGrid.innerHTML = '';
+                displayedMovies = [];
+                currentPage = 0;
+            }
+
+            const startIndex = currentPage * moviesPerPage;
+            const endIndex = startIndex + moviesPerPage;
+            const moviesToShow = (moviesToRender || filteredMovies).slice(startIndex, endIndex);
+            
+            displayedMovies = [...displayedMovies, ...moviesToShow];
+
+            moviesToShow.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card bg-gray-800 rounded-xl overflow-hidden cursor-pointer';
+                movieCard.onclick = () => showMovieDetails(movie);
+                
+                movieCard.innerHTML = `
+                    <div class="p-6 text-center">
+                        <div class="text-6xl mb-4">${movie.poster}</div>
+                        <h3 class="text-xl font-semibold mb-2">${movie.title}</h3>
+                        <p class="text-gray-400 mb-2">${movie.year} • ${movie.genre.charAt(0).toUpperCase() + movie.genre.slice(1)}</p>
+                        <div class="flex items-center justify-center mb-3">
+                            <span class="star-rating text-lg">★</span>
+                            <span class="ml-1 font-medium">${movie.rating}</span>
+                        </div>
+                        <p class="text-sm text-gray-300 mb-4">${movie.plot.substring(0, 100)}...</p>
+                        <button class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                `;
+                
+                movieGrid.appendChild(movieCard);
+            });
+
+            // Update load more button
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            if (displayedMovies.length >= filteredMovies.length) {
+                loadMoreBtn.style.display = 'none';
+            } else {
+                loadMoreBtn.style.display = 'block';
+            }
+
+            currentPage++;
+        }
+
+        function loadMoreMovies() {
+            renderMovies(null, true);
+        }
+
+        function filterByGenre(genre) {
+            currentGenre = genre;
+            
+            // Update active genre button
+            document.querySelectorAll('.genre-tag').forEach(btn => {
+                btn.classList.remove('active-genre', 'bg-purple-600');
+                btn.classList.add('bg-gray-700');
+            });
+            event.target.classList.add('active-genre', 'bg-purple-600');
+            event.target.classList.remove('bg-gray-700');
+            
+            // Filter movies
+            if (genre === 'all') {
+                filteredMovies = [...movies];
+            } else {
+                filteredMovies = movies.filter(movie => movie.genre === genre);
+            }
+            
+            sortMovies();
+            renderMovies();
+            updateMovieCount();
+        }
+
+        function sortMovies() {
+            const sortBy = document.getElementById('sortSelect').value;
+            
+            switch(sortBy) {
+                case 'rating':
+                    filteredMovies.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'year':
+                    filteredMovies.sort((a, b) => b.year - a.year);
+                    break;
+                case 'title':
+                    filteredMovies.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'random':
+                    filteredMovies.sort(() => Math.random() - 0.5);
+                    break;
+            }
+            
+            renderMovies();
+        }
+
+        function searchMovies() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm === '') {
+                filteredMovies = currentGenre === 'all' ? [...movies] : movies.filter(movie => movie.genre === currentGenre);
+            } else {
+                const baseMovies = currentGenre === 'all' ? movies : movies.filter(movie => movie.genre === currentGenre);
+                filteredMovies = baseMovies.filter(movie => 
+                    movie.title.toLowerCase().includes(searchTerm) ||
+                    movie.director.toLowerCase().includes(searchTerm) ||
+                    movie.cast.some(actor => actor.toLowerCase().includes(searchTerm)) ||
+                    movie.plot.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            sortMovies();
+            renderMovies();
+            updateMovieCount();
+        }
+
+        function showMovieDetails(movie) {
+            const modal = document.getElementById('movieModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <div class="p-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="text-6xl">${movie.poster}</div>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl">×</button>
+                    </div>
+                    
+                    <h2 class="text-3xl font-bold mb-2">${movie.title}</h2>
+                    <p class="text-gray-400 mb-4">${movie.year} • ${movie.genre.charAt(0).toUpperCase() + movie.genre.slice(1)}</p>
+                    
+                    <div class="flex items-center mb-6">
+                        <span class="star-rating text-xl">★</span>
+                        <span class="ml-2 text-lg font-medium">${movie.rating}/10</span>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-2">Director</h3>
+                        <p class="text-gray-300">${movie.director}</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-2">Cast</h3>
+                        <p class="text-gray-300">${movie.cast.join(', ')}</p>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-2">Plot</h3>
+                        <p class="text-gray-300 leading-relaxed">${movie.plot}</p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-medium transition-colors">
+                            Add to Watchlist
+                        </button>
+                        <button class="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg font-medium transition-colors">
+                            Mark as Watched
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('movieModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('movieModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchMovies();
+            }
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMovieCount();
+            renderMovies();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967ae5e4874f47f1',t:'MTc1Mzk0MTg2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
