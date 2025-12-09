@@ -42,23 +42,25 @@ A beautiful, interactive movie recommendation platform built with HTML, CSS (Tai
 - Paramount+
 
 💻 Usage
-Browse all movies - Scroll through the complete collection
-Filter by genre - Click any genre button to see movies in that category
-Set your mood - Choose how you're feeling to get mood-appropriate recommendations
-Select platform - Filter by your available streaming services
-Combine filters - Use multiple filters together for precise results
-Click to learn more - Each movie card links directly to its IMDb page
-🎨 Customization
-Changing Colors
+Browse all movies - Scroll through the complete collection.
+Filter by genre - Click any genre button to see movies in that category.
+Set your mood - Choose how you're feeling to get mood-appropriate recommendations.
+Select platform - Filter by your available streaming services.
+Combine filters - Use multiple filters together for precise results.
+Click to learn more - Each movie card links directly to its IMDb page.
+
+🎨 Customization.
+
+ 1.Changing Colors.
 The app uses a purple gradient theme. To customize colors, update these classes in the code:
 
-/* Main gradient */
+ 2.Main gradient. 
 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
-/* Change to your preferred gradient */
+3.Change to your preferred gradient.
 background: linear-gradient(135deg, #your-color-1 0%, #your-color-2 100%);
 
-Adding Movies
+4.Adding Movies.
 To add more movies, append to the moviesDatabase array:
 
 {
@@ -71,7 +73,7 @@ To add more movies, append to the moviesDatabase array:
   imdb: "tt1234567"
 }
 
-Modifying Filters
+5.Modifying Filters.
 Add new filter options in the HTML and they'll automatically work with the existing JavaScript logic.
 
 📱 Browser Support
@@ -129,13 +131,12 @@ Movie data includes ratings and information from IMDb
 UI inspiration from modern streaming platforms
 Tailwind CSS for the amazing utility classes
 
-Project Link: https:https://movie-recomendation-system-lilac.vercel.app/
+Project Link:https://movie-recomendation-system-lilac.vercel.app/
 
 Made with ❤️ and 🍿
+
 
 Happy movie watching!
 
 
 
-- Contributing guidelines
-- Professional formatting
