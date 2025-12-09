@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Recommendation Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .movie-card {
+      transition: transform 0.3s, box-shadow 0.3s;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .movie-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .filter-btn {
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .genre-badge {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+      display: inline-block;
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .streaming-badge {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
+      display: inline-block;
+      margin-right: 0.25rem;
+      font-weight: 600;
+    }
+
+    .hero-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .movie-card {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .star-rating {
+      background: rgba(255, 193, 7, 0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="bg-gray-50">
+  <div class="min-h-full w-full overflow-auto"><!-- Hero Header -->
+   <header class="hero-gradient shadow-2xl sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+     <div class="text-center">
+      <h1 class="text-5xl font-black text-white mb-2 tracking-tight">🎬 Movie Recommender</h1>
+     </div>
+    </div>
+   </header><!-- Main Content -->
+   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"><!-- Filters Section -->
+    <div class="glass-effect rounded-2xl shadow-xl p-8 mb-10"><!-- Genre Filter -->
+     <div class="mb-8"><label class="block text-lg font-bold text-gray-800 mb-4 flex items-center"> <span class="text-2xl mr-2">🎭</span> Genre </label>
+      <div class="flex flex-wrap gap-3"><button class="filter-btn active px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="all"> All Genres </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Action"> Action </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Comedy"> Comedy </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Drama"> Drama </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Horror"> Horror </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Romance"> Romance </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Sci-Fi"> Sci-Fi </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Thriller"> Thriller </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="genre" data-value="Documentary"> Documentary </button>
+      </div>
+     </div><!-- Mood Filter -->
+     <div class="mb-8"><label class="block text-lg font-bold text-gray-800 mb-4 flex items-center"> <span class="text-2xl mr-2">😊</span> Mood </label>
+      <div class="flex flex-wrap gap-3"><button class="filter-btn active px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="all"> Any Mood </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Exciting"> 😃 Exciting </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Funny"> 😂 Funny </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Emotional"> 😢 Emotional </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Scary"> 😱 Scary </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Romantic"> 💕 Romantic </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Mind-bending"> 🤯 Mind-bending </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="mood" data-value="Inspiring"> ✨ Inspiring </button>
+      </div>
+     </div><!-- Streaming Platform Filter -->
+     <div><label class="block text-lg font-bold text-gray-800 mb-4 flex items-center"> <span class="text-2xl mr-2">📺</span> Streaming Platform </label>
+      <div class="flex flex-wrap gap-3"><button class="filter-btn active px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="all"> All Platforms </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="Netflix"> Netflix </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="HBO Max"> HBO Max </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="Disney+"> Disney+ </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="Hulu"> Hulu </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="Prime Video"> Prime Video </button> <button class="filter-btn px-5 py-2.5 rounded-full bg-white text-gray-700 font-semibold shadow-md" data-filter="platform" data-value="Apple TV+"> Apple TV+ </button>
+      </div>
+     </div>
+    </div><!-- Results Counter -->
+    <div class="mb-6 text-center">
+     <p class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600"><span id="results-count">800</span> movies found</p>
+    </div><!-- Movies Grid -->
+    <div id="movies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"><!-- Movies will be rendered here -->
+    </div>
+   </main><!-- Footer -->
+   <footer class="hero-gradient mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+     <p class="text-lg font-semibold">🎬 800+ Curated Films • Find Your Next Favorite</p>
+    </div>
+   </footer>
+  </div>
+  <script>
+    // Complete movie database (800+ movies)
+    const moviesDatabase = [
+      // Action Movies (100)
+      { title: "Mad Max: Fury Road", year: 2015, genre: "Action", mood: "Exciting", rating: 8.1, platform: "HBO Max", imdb: "tt1392190" },
+      { title: "John Wick", year: 2014, genre: "Action", mood: "Exciting", rating: 7.4, platform: "Netflix", imdb: "tt2911666" },
+      { title: "Die Hard", year: 1988, genre: "Action", mood: "Exciting", rating: 8.2, platform: "Hulu", imdb: "tt0095016" },
+      { title: "The Dark Knight", year: 2008, genre: "Action", mood: "Intense", rating: 9.0, platform: "HBO Max", imdb: "tt0468569" },
+      { title: "Gladiator", year: 2000, genre: "Action", mood: "Epic", rating: 8.5, platform: "Prime Video", imdb: "tt0172495" },
+      { title: "Casino Royale", year: 2006, genre: "Action", mood: "Exciting", rating: 8.0, platform: "Prime Video", imdb: "tt0381061" },
+      { title: "Mission: Impossible", year: 1996, genre: "Action", mood: "Thrilling", rating: 7.1, platform: "Paramount+", imdb: "tt0117060" },
+      { title: "The Rock", year: 1996, genre: "Action", mood: "Exciting", rating: 7.4, platform: "HBO Max", imdb: "tt0117500" },
+      { title: "Heat", year: 1995, genre: "Action", mood: "Intense", rating: 8.3, platform: "Netflix", imdb: "tt0113277" },
+      { title: "Speed", year: 1994, genre: "Action", mood: "Thrilling", rating: 7.3, platform: "Hulu", imdb: "tt0111257" },
+      { title: "Terminator 2", year: 1991, genre: "Action", mood: "Exciting", rating: 8.6, platform: "Netflix", imdb: "tt0103064" },
+      { title: "Predator", year: 1987, genre: "Action", mood: "Intense", rating: 7.8, platform: "Hulu", imdb: "tt0093773" },
+      { title: "RoboCop", year: 1987, genre: "Action", mood: "Exciting", rating: 7.6, platform: "Prime Video", imdb: "tt0093870" },
+      { title: "Total Recall", year: 1990, genre: "Action", mood: "Mind-bending", rating: 7.5, platform: "HBO Max", imdb: "tt0100802" },
+      { title: "Face/Off", year: 1997, genre: "Action", mood: "Intense", rating: 7.3, platform: "Paramount+", imdb: "tt0119094" },
+      { title: "Con Air", year: 1997, genre: "Action", mood: "Exciting", rating: 6.9, platform: "Hulu", imdb: "tt0118880" },
+      { title: "The Fugitive", year: 1993, genre: "Action", mood: "Thrilling", rating: 7.8, platform: "HBO Max", imdb: "tt0106977" },
+      { title: "True Lies", year: 1994, genre: "Action", mood: "Fun", rating: 7.3, platform: "Disney+", imdb: "tt0111503" },
+      { title: "Cliffhanger", year: 1993, genre: "Action", mood: "Thrilling", rating: 6.5, platform: "Prime Video", imdb: "tt0106582" },
+      { title: "Rambo: First Blood", year: 1982, genre: "Action", mood: "Intense", rating: 7.7, platform: "Netflix", imdb: "tt0083944" },
+      { title: "The Bourne Identity", year: 2002, genre: "Action", mood: "Thrilling", rating: 7.9, platform: "Prime Video", imdb: "tt0258463" },
+      { title: "The Matrix", year: 1999, genre: "Action", mood: "Mind-bending", rating: 8.7, platform: "HBO Max", imdb: "tt0133093" },
+      { title: "Kill Bill: Vol. 1", year: 2003, genre: "Action", mood: "Stylish", rating: 8.2, platform: "Netflix", imdb: "tt0266697" },
+      { title: "Crouching Tiger, Hidden Dragon", year: 2000, genre: "Action", mood: "Beautiful", rating: 7.9, platform: "Netflix", imdb: "tt0190332" },
+      { title: "300", year: 2006, genre: "Action", mood: "Epic", rating: 7.6, platform: "HBO Max", imdb: "tt0416449" },
+      { title: "Troy", year: 2004, genre: "Action", mood: "Epic", rating: 7.3, platform: "HBO Max", imdb: "tt0332452" },
+      { title: "Braveheart", year: 1995, genre: "Action", mood: "Epic", rating: 8.3, platform: "Paramount+", imdb: "tt0112573" },
+      { title: "The Last Samurai", year: 2003, genre: "Action", mood: "Epic", rating: 7.8, platform: "HBO Max", imdb: "tt0325710" },
+      { title: "Kingdom of Heaven", year: 2005, genre: "Action", mood: "Epic", rating: 7.3, platform: "Disney+", imdb: "tt0320661" },
+      { title: "Master and Commander", year: 2003, genre: "Action", mood: "Epic", rating: 7.4, platform: "HBO Max", imdb: "tt0311113" },
+      { title: "Black Hawk Down", year: 2001, genre: "Action", mood: "Intense", rating: 7.7, platform: "Netflix", imdb: "tt0265086" },
+      { title: "Saving Private Ryan", year: 1998, genre: "Action", mood: "Intense", rating: 8.6, platform: "Paramount+", imdb: "tt0120815" },
+      { title: "Apocalypse Now", year: 1979, genre: "Action", mood: "Dark", rating: 8.4, platform: "Paramount+", imdb: "tt0078788" },
+      { title: "Full Metal Jacket", year: 1987, genre: "Action", mood: "Dark", rating: 8.3, platform: "HBO Max", imdb: "tt0093058" },
+      { title: "Platoon", year: 1986, genre: "Action", mood: "Dark", rating: 8.1, platform: "Prime Video", imdb: "tt0091763" },
+      { title: "The Hurt Locker", year: 2008, genre: "Action", mood: "Intense", rating: 7.5, platform: "Netflix", imdb: "tt0887912" },
+      { title: "Zero Dark Thirty", year: 2012, genre: "Action", mood: "Intense", rating: 7.4, platform: "Prime Video", imdb: "tt1790885" },
+      { title: "13 Hours", year: 2016, genre: "Action", mood: "Intense", rating: 7.3, platform: "Paramount+", imdb: "tt4172430" },
+      { title: "Lone Survivor", year: 2013, genre: "Action", mood: "Intense", rating: 7.5, platform: "Netflix", imdb: "tt1091191" },
+      { title: "American Sniper", year: 2014, genre: "Action", mood: "Intense", rating: 7.3, platform: "HBO Max", imdb: "tt2179136" },
+      { title: "Dunkirk", year: 2017, genre: "Action", mood: "Intense", rating: 7.8, platform: "HBO Max", imdb: "tt5013056" },
+      { title: "1917", year: 2019, genre: "Action", mood: "Intense", rating: 8.3, platform: "Prime Video", imdb: "tt8579674" },
+      { title: "Top Gun", year: 1986, genre: "Action", mood: "Fun", rating: 6.9, platform: "Paramount+", imdb: "tt0092099" },
+      { title: "Top Gun: Maverick", year: 2022, genre: "Action", mood: "Exciting", rating: 8.3, platform: "Paramount+", imdb: "tt1745960" },
+      { title: "Days of Thunder", year: 1990, genre: "Action", mood: "Exciting", rating: 6.1, platform: "Paramount+", imdb: "tt0099371" },
+      { title: "Rush", year: 2013, genre: "Action", mood: "Thrilling", rating: 8.1, platform: "Netflix", imdb: "tt1979320" },
+      { title: "Ford v Ferrari", year: 2019, genre: "Action", mood: "Inspiring", rating: 8.1, platform: "HBO Max", imdb: "tt1950186" },
+      { title: "Baby Driver", year: 2017, genre: "Action", mood: "Stylish", rating: 7.6, platform: "Netflix", imdb: "tt3890160" },
+      { title: "Drive", year: 2011, genre: "Action", mood: "Stylish", rating: 7.8, platform: "Prime Video", imdb: "tt0780504" },
+      { title: "The Italian Job", year: 2003, genre: "Action", mood: "Fun", rating: 7.0, platform: "Paramount+", imdb: "tt0317740" },
+      { title: "Ocean's Eleven", year: 2001, genre: "Action", mood: "Fun", rating: 7.7, platform: "HBO Max", imdb: "tt0240772" },
+      { title: "The Town", year: 2010, genre: "Action", mood: "Intense", rating: 7.5, platform: "HBO Max", imdb: "tt0840361" },
+      { title: "Point Break", year: 1991, genre: "Action", mood: "Thrilling", rating: 7.3, platform: "HBO Max", imdb: "tt0102685" },
+      { title: "Bad Boys", year: 1995, genre: "Action", mood: "Fun", rating: 6.9, platform: "Netflix", imdb: "tt0112442" },
+      { title: "Lethal Weapon", year: 1987, genre: "Action", mood: "Fun", rating: 7.6, platform: "HBO Max", imdb: "tt0093409" },
+      { title: "Beverly Hills Cop", year: 1984, genre: "Action", mood: "Fun", rating: 7.4, platform: "Paramount+", imdb: "tt0086960" },
+      { title: "48 Hrs.", year: 1982, genre: "Action", mood: "Fun", rating: 6.9, platform: "Paramount+", imdb: "tt0083511" },
+      { title: "Rush Hour", year: 1998, genre: "Action", mood: "Funny", rating: 7.0, platform: "HBO Max", imdb: "tt0120812" },
+      { title: "Shanghai Noon", year: 2000, genre: "Action", mood: "Fun", rating: 6.6, platform: "Disney+", imdb: "tt0184894" },
+      { title: "The Mask of Zorro", year: 1998, genre: "Action", mood: "Swashbuckling", rating: 6.8, platform: "Prime Video", imdb: "tt0120746" },
+      { title: "Pirates of the Caribbean", year: 2003, genre: "Action", mood: "Adventure", rating: 8.1, platform: "Disney+", imdb: "tt0325980" },
+      { title: "Indiana Jones: Raiders", year: 1981, genre: "Action", mood: "Adventure", rating: 8.4, platform: "Disney+", imdb: "tt0082971" },
+      { title: "The Mummy", year: 1999, genre: "Action", mood: "Adventure", rating: 7.1, platform: "Prime Video", imdb: "tt0120616" },
+      { title: "National Treasure", year: 2004, genre: "Action", mood: "Adventure", rating: 6.9, platform: "Disney+", imdb: "tt0368891" },
+      { title: "Jurassic Park", year: 1993, genre: "Action", mood: "Thrilling", rating: 8.2, platform: "Netflix", imdb: "tt0107290" },
+      { title: "Jaws", year: 1975, genre: "Action", mood: "Thrilling", rating: 8.1, platform: "Prime Video", imdb: "tt0073195" },
+      { title: "King Kong", year: 2005, genre: "Action", mood: "Epic", rating: 7.2, platform: "Prime Video", imdb: "tt0360717" },
+      { title: "Godzilla", year: 2014, genre: "Action", mood: "Epic", rating: 6.4, platform: "HBO Max", imdb: "tt0831387" },
+      { title: "Pacific Rim", year: 2013, genre: "Action", mood: "Epic", rating: 6.9, platform: "HBO Max", imdb: "tt1663662" },
+      { title: "Transformers", year: 2007, genre: "Action", mood: "Exciting", rating: 7.0, platform: "Paramount+", imdb: "tt0418279" },
+      { title: "Independence Day", year: 1996, genre: "Action", mood: "Epic", rating: 7.0, platform: "Hulu", imdb: "tt0116629" },
+      { title: "War of the Worlds", year: 2005, genre: "Action", mood: "Intense", rating: 6.5, platform: "Paramount+", imdb: "tt0407304" },
+      { title: "Cloverfield", year: 2008, genre: "Action", mood: "Thrilling", rating: 7.0, platform: "Paramount+", imdb: "tt1060277" },
+      { title: "District 9", year: 2009, genre: "Action", mood: "Intense", rating: 7.9, platform: "Netflix", imdb: "tt1136608" },
+      { title: "Edge of Tomorrow", year: 2014, genre: "Action", mood: "Exciting", rating: 7.9, platform: "HBO Max", imdb: "tt1631867" },
+      { title: "Oblivion", year: 2013, genre: "Action", mood: "Mysterious", rating: 7.0, platform: "Prime Video", imdb: "tt1483013" },
+      { title: "Elysium", year: 2013, genre: "Action", mood: "Intense", rating: 6.6, platform: "Netflix", imdb: "tt1535108" },
+      { title: "Looper", year: 2012, genre: "Action", mood: "Mind-bending", rating: 7.4, platform: "Netflix", imdb: "tt1276104" },
+      { title: "Minority Report", year: 2002, genre: "Action", mood: "Mind-bending", rating: 7.7, platform: "Paramount+", imdb: "tt0181689" },
+      { title: "I, Robot", year: 2004, genre: "Action", mood: "Thrilling", rating: 7.1, platform: "Disney+", imdb: "tt0343818" },
+      { title: "Real Steel", year: 2011, genre: "Action", mood: "Inspiring", rating: 7.1, platform: "Disney+", imdb: "tt0433035" },
+      { title: "Chappie", year: 2015, genre: "Action", mood: "Emotional", rating: 6.8, platform: "Netflix", imdb: "tt1823672" },
+      { title: "Alita: Battle Angel", year: 2019, genre: "Action", mood: "Epic", rating: 7.3, platform: "HBO Max", imdb: "tt0437086" },
+      { title: "Ghost in the Shell", year: 2017, genre: "Action", mood: "Stylish", rating: 6.3, platform: "Paramount+", imdb: "tt1219827" },
+      { title: "Dredd", year: 2012, genre: "Action", mood: "Intense", rating: 7.1, platform: "Prime Video", imdb: "tt1343727" },
+      { title: "RoboCop", year: 2014, genre: "Action", mood: "Intense", rating: 6.1, platform: "Prime Video", imdb: "tt1234721" },
+      { title: "Escape from New York", year: 1981, genre: "Action", mood: "Dark", rating: 7.1, platform: "Paramount+", imdb: "tt0082340" },
+      { title: "The Running Man", year: 1987, genre: "Action", mood: "Thrilling", rating: 6.6, platform: "Prime Video", imdb: "tt0093894" },
+      { title: "Bloodsport", year: 1988, genre: "Action", mood: "Exciting", rating: 6.8, platform: "Netflix", imdb: "tt0092675" },
+      { title: "Kickboxer", year: 1989, genre: "Action", mood: "Exciting", rating: 6.5, platform: "Prime Video", imdb: "tt0097659" },
+      { title: "Enter the Dragon", year: 1973, genre: "Action", mood: "Classic", rating: 7.6, platform: "HBO Max", imdb: "tt0070034" },
+      { title: "The Raid", year: 2011, genre: "Action", mood: "Intense", rating: 7.6, platform: "Netflix", imdb: "tt1899353" },
+      { title: "Ong-Bak", year: 2003, genre: "Action", mood: "Exciting", rating: 7.1, platform: "Prime Video", imdb: "tt0368909" },
+      { title: "Ip Man", year: 2008, genre: "Action", mood: "Inspiring", rating: 8.0, platform: "Netflix", imdb: "tt1220719" },
+      { title: "Hero", year: 2002, genre: "Action", mood: "Beautiful", rating: 7.9, platform: "Prime Video", imdb: "tt0299977" },
+      { title: "House of Flying Daggers", year: 2004, genre: "Action", mood: "Beautiful", rating: 7.5, platform: "Prime Video", imdb: "tt0385004" },
+      { title: "Red Cliff", year: 2008, genre: "Action", mood: "Epic", rating: 7.3, platform: "Prime Video", imdb: "tt0425637" },
+      { title: "13 Assassins", year: 2010, genre: "Action", mood: "Epic", rating: 7.5, platform: "Netflix", imdb: "tt1436045" },
+      { title: "Seven Samurai", year: 1954, genre: "Action", mood: "Epic", rating: 8.6, platform: "HBO Max", imdb: "tt0047478" },
+      { title: "Yojimbo", year: 1961, genre: "Action", mood: "Classic", rating: 8.2, platform: "HBO Max", imdb: "tt0055630" },
+      { title: "Sanjuro", year: 1962, genre: "Action", mood: "Classic", rating: 8.1, platform: "HBO Max", imdb: "tt0056443" },
+      { title: "Ran", year: 1985, genre: "Action", mood: "Epic", rating: 8.2, platform: "HBO Max", imdb: "tt0089881" },
+
+      // Comedy Movies (100)
+      { title: "The Grand Budapest Hotel", year: 2014, genre: "Comedy", mood: "Whimsical", rating: 8.1, platform: "Disney+", imdb: "tt2278388" },
+      { title: "Superbad", year: 2007, genre: "Comedy", mood: "Funny", rating: 7.6, platform: "Netflix", imdb: "tt0829482" },
+      { title: "The Hangover", year: 2009, genre: "Comedy", mood: "Funny", rating: 7.7, platform: "HBO Max", imdb: "tt1119646" },
+      { title: "Bridesmaids", year: 2011, genre: "Comedy", mood: "Funny", rating: 6.8, platform: "Prime Video", imdb: "tt1478338" },
+      { title: "Step Brothers", year: 2008, genre: "Comedy", mood: "Funny", rating: 6.9, platform: "Netflix", imdb: "tt0838283" },
+      { title: "Dumb and Dumber", year: 1994, genre: "Comedy", mood: "Funny", rating: 7.3, platform: "HBO Max", imdb: "tt0109686" },
+      { title: "Austin Powers", year: 1997, genre: "Comedy", mood: "Funny", rating: 7.0, platform: "Netflix", imdb: "tt0118655" },
+      { title: "Anchorman", year: 2004, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Paramount+", imdb: "tt0357413" },
+      { title: "Zoolander", year: 2001, genre: "Comedy", mood: "Funny", rating: 6.5, platform: "Paramount+", imdb: "tt0196229" },
+      { title: "Dodgeball", year: 2004, genre: "Comedy", mood: "Funny", rating: 6.7, platform: "HBO Max", imdb: "tt0364725" },
+      { title: "Old School", year: 2003, genre: "Comedy", mood: "Funny", rating: 7.0, platform: "Hulu", imdb: "tt0302886" },
+      { title: "Wedding Crashers", year: 2005, genre: "Comedy", mood: "Funny", rating: 6.9, platform: "HBO Max", imdb: "tt0396269" },
+      { title: "The 40-Year-Old Virgin", year: 2005, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Prime Video", imdb: "tt0405422" },
+      { title: "Knocked Up", year: 2007, genre: "Comedy", mood: "Funny", rating: 6.9, platform: "Prime Video", imdb: "tt0478311" },
+      { title: "Forgetting Sarah Marshall", year: 2008, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Netflix", imdb: "tt0800039" },
+      { title: "I Love You, Man", year: 2009, genre: "Comedy", mood: "Funny", rating: 7.0, platform: "Paramount+", imdb: "tt1155056" },
+      { title: "Role Models", year: 2008, genre: "Comedy", mood: "Funny", rating: 6.8, platform: "Prime Video", imdb: "tt0430922" },
+      { title: "Tropic Thunder", year: 2008, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Paramount+", imdb: "tt0942385" },
+      { title: "21 Jump Street", year: 2012, genre: "Comedy", mood: "Funny", rating: 7.2, platform: "Netflix", imdb: "tt1232829" },
+      { title: "22 Jump Street", year: 2014, genre: "Comedy", mood: "Funny", rating: 7.0, platform: "Netflix", imdb: "tt2294449" },
+      { title: "The Other Guys", year: 2010, genre: "Comedy", mood: "Funny", rating: 6.7, platform: "Netflix", imdb: "tt1386588" },
+      { title: "Hot Fuzz", year: 2007, genre: "Comedy", mood: "Funny", rating: 7.8, platform: "Prime Video", imdb: "tt0425112" },
+      { title: "Shaun of the Dead", year: 2004, genre: "Comedy", mood: "Funny", rating: 7.9, platform: "Prime Video", imdb: "tt0365748" },
+      { title: "The World's End", year: 2013, genre: "Comedy", mood: "Funny", rating: 7.0, platform: "Prime Video", imdb: "tt1213663" },
+      { title: "Scott Pilgrim vs. the World", year: 2010, genre: "Comedy", mood: "Fun", rating: 7.6, platform: "Netflix", imdb: "tt0446029" },
+      { title: "Zombieland", year: 2009, genre: "Comedy", mood: "Fun", rating: 7.6, platform: "Netflix", imdb: "tt1156398" },
+      { title: "This Is the End", year: 2013, genre: "Comedy", mood: "Funny", rating: 6.6, platform: "Netflix", imdb: "tt1245492" },
+      { title: "Pineapple Express", year: 2008, genre: "Comedy", mood: "Funny", rating: 6.9, platform: "Netflix", imdb: "tt0910936" },
+      { title: "Harold & Kumar", year: 2004, genre: "Comedy", mood: "Funny", rating: 7.0, platform: "HBO Max", imdb: "tt0366551" },
+      { title: "Dazed and Confused", year: 1993, genre: "Comedy", mood: "Chill", rating: 7.6, platform: "Paramount+", imdb: "tt0106677" },
+      { title: "Fast Times at Ridgemont High", year: 1982, genre: "Comedy", mood: "Fun", rating: 7.1, platform: "Prime Video", imdb: "tt0083929" },
+      { title: "Ferris Bueller's Day Off", year: 1986, genre: "Comedy", mood: "Fun", rating: 7.8, platform: "Paramount+", imdb: "tt0091042" },
+      { title: "The Breakfast Club", year: 1985, genre: "Comedy", mood: "Nostalgic", rating: 7.8, platform: "Netflix", imdb: "tt0088847" },
+      { title: "Sixteen Candles", year: 1984, genre: "Comedy", mood: "Nostalgic", rating: 7.0, platform: "Netflix", imdb: "tt0088128" },
+      { title: "Weird Science", year: 1985, genre: "Comedy", mood: "Fun", rating: 6.6, platform: "Prime Video", imdb: "tt0090305" },
+      { title: "Clueless", year: 1995, genre: "Comedy", mood: "Fun", rating: 6.9, platform: "Paramount+", imdb: "tt0112697" },
+      { title: "Mean Girls", year: 2004, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Paramount+", imdb: "tt0377092" },
+      { title: "Easy A", year: 2010, genre: "Comedy", mood: "Fun", rating: 7.0, platform: "Netflix", imdb: "tt1282140" },
+      { title: "Pitch Perfect", year: 2012, genre: "Comedy", mood: "Fun", rating: 7.1, platform: "Prime Video", imdb: "tt1981677" },
+      { title: "Legally Blonde", year: 2001, genre: "Comedy", mood: "Fun", rating: 6.5, platform: "HBO Max", imdb: "tt0250494" },
+      { title: "10 Things I Hate About You", year: 1999, genre: "Comedy", mood: "Romantic", rating: 7.3, platform: "Disney+", imdb: "tt0147800" },
+      { title: "She's the Man", year: 2006, genre: "Comedy", mood: "Fun", rating: 6.3, platform: "Paramount+", imdb: "tt0454945" },
+      { title: "The Princess Diaries", year: 2001, genre: "Comedy", mood: "Charming", rating: 6.4, platform: "Disney+", imdb: "tt0247638" },
+      { title: "Freaky Friday", year: 2003, genre: "Comedy", mood: "Fun", rating: 6.3, platform: "Disney+", imdb: "tt0322330" },
+      { title: "13 Going on 30", year: 2004, genre: "Comedy", mood: "Charming", rating: 6.2, platform: "Netflix", imdb: "tt0337563" },
+      { title: "Big", year: 1988, genre: "Comedy", mood: "Heartwarming", rating: 7.3, platform: "HBO Max", imdb: "tt0094737" },
+      { title: "Mrs. Doubtfire", year: 1993, genre: "Comedy", mood: "Heartwarming", rating: 7.1, platform: "Disney+", imdb: "tt0107614" },
+      { title: "Liar Liar", year: 1997, genre: "Comedy", mood: "Funny", rating: 6.9, platform: "Netflix", imdb: "tt0119528" },
+      { title: "Bruce Almighty", year: 2003, genre: "Comedy", mood: "Funny", rating: 6.8, platform: "Prime Video", imdb: "tt0315327" },
+      { title: "Yes Man", year: 2008, genre: "Comedy", mood: "Uplifting", rating: 6.8, platform: "HBO Max", imdb: "tt1068680" },
+      { title: "The Mask", year: 1994, genre: "Comedy", mood: "Fun", rating: 6.9, platform: "HBO Max", imdb: "tt0110475" },
+      { title: "Ace Ventura", year: 1994, genre: "Comedy", mood: "Funny", rating: 6.9, platform: "Paramount+", imdb: "tt0109040" },
+      { title: "Dumb and Dumber To", year: 2014, genre: "Comedy", mood: "Funny", rating: 5.6, platform: "HBO Max", imdb: "tt2096672" },
+      { title: "Groundhog Day", year: 1993, genre: "Comedy", mood: "Clever", rating: 8.0, platform: "Netflix", imdb: "tt0107048" },
+      { title: "The Truman Show", year: 1998, genre: "Comedy", mood: "Thoughtful", rating: 8.2, platform: "Paramount+", imdb: "tt0120382" },
+      { title: "Being John Malkovich", year: 1999, genre: "Comedy", mood: "Weird", rating: 7.7, platform: "Netflix", imdb: "tt0120601" },
+      { title: "Eternal Sunshine", year: 2004, genre: "Comedy", mood: "Melancholic", rating: 8.3, platform: "Prime Video", imdb: "tt0338013" },
+      { title: "Adaptation", year: 2002, genre: "Comedy", mood: "Meta", rating: 7.7, platform: "Netflix", imdb: "tt0268126" },
+      { title: "Stranger Than Fiction", year: 2006, genre: "Comedy", mood: "Thoughtful", rating: 7.5, platform: "Netflix", imdb: "tt0420223" },
+      { title: "Little Miss Sunshine", year: 2006, genre: "Comedy", mood: "Heartwarming", rating: 7.8, platform: "Disney+", imdb: "tt0449059" },
+      { title: "Juno", year: 2007, genre: "Comedy", mood: "Quirky", rating: 7.4, platform: "Hulu", imdb: "tt0467406" },
+      { title: "Napoleon Dynamite", year: 2004, genre: "Comedy", mood: "Quirky", rating: 6.9, platform: "Hulu", imdb: "tt0374900" },
+      { title: "School of Rock", year: 2003, genre: "Comedy", mood: "Fun", rating: 7.1, platform: "Paramount+", imdb: "tt0332379" },
+      { title: "Elf", year: 2003, genre: "Comedy", mood: "Heartwarming", rating: 7.1, platform: "HBO Max", imdb: "tt0319343" },
+      { title: "The Santa Clause", year: 1994, genre: "Comedy", mood: "Festive", rating: 6.6, platform: "Disney+", imdb: "tt0111070" },
+      { title: "Home Alone", year: 1990, genre: "Comedy", mood: "Fun", rating: 7.7, platform: "Disney+", imdb: "tt0099785" },
+      { title: "A Christmas Story", year: 1983, genre: "Comedy", mood: "Nostalgic", rating: 7.9, platform: "HBO Max", imdb: "tt0085334" },
+      { title: "National Lampoon's Christmas", year: 1989, genre: "Comedy", mood: "Funny", rating: 7.5, platform: "HBO Max", imdb: "tt0097958" },
+      { title: "Planes, Trains and Automobiles", year: 1987, genre: "Comedy", mood: "Heartwarming", rating: 7.6, platform: "Paramount+", imdb: "tt0093748" },
+      { title: "Uncle Buck", year: 1989, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Prime Video", imdb: "tt0098554" },
+      { title: "The Great Outdoors", year: 1988, genre: "Comedy", mood: "Fun", rating: 6.6, platform: "Prime Video", imdb: "tt0095253" },
+      { title: "Caddyshack", year: 1980, genre: "Comedy", mood: "Funny", rating: 7.2, platform: "HBO Max", imdb: "tt0080487" },
+      { title: "Stripes", year: 1981, genre: "Comedy", mood: "Funny", rating: 6.8, platform: "Netflix", imdb: "tt0083131" },
+      { title: "Ghostbusters", year: 1984, genre: "Comedy", mood: "Fun", rating: 7.8, platform: "Netflix", imdb: "tt0087332" },
+      { title: "Spaceballs", year: 1987, genre: "Comedy", mood: "Funny", rating: 7.1, platform: "Hulu", imdb: "tt0094012" },
+      { title: "Blazing Saddles", year: 1974, genre: "Comedy", mood: "Funny", rating: 7.7, platform: "HBO Max", imdb: "tt0071230" },
+      { title: "Young Frankenstein", year: 1974, genre: "Comedy", mood: "Funny", rating: 8.0, platform: "Hulu", imdb: "tt0072431" },
+      { title: "Robin Hood: Men in Tights", year: 1993, genre: "Comedy", mood: "Funny", rating: 6.7, platform: "Disney+", imdb: "tt0107977" },
+      { title: "The Naked Gun", year: 1988, genre: "Comedy", mood: "Funny", rating: 7.6, platform: "Paramount+", imdb: "tt0095705" },
+      { title: "Airplane!", year: 1980, genre: "Comedy", mood: "Funny", rating: 7.7, platform: "Paramount+", imdb: "tt0080339" },
+      { title: "Top Secret!", year: 1984, genre: "Comedy", mood: "Funny", rating: 7.2, platform: "Paramount+", imdb: "tt0088286" },
+      { title: "Hot Shots!", year: 1991, genre: "Comedy", mood: "Funny", rating: 6.7, platform: "Hulu", imdb: "tt0102059" },
+      { title: "Loaded Weapon 1", year: 1993, genre: "Comedy", mood: "Funny", rating: 6.2, platform: "HBO Max", imdb: "tt0107659" },
+      { title: "Scary Movie", year: 2000, genre: "Comedy", mood: "Funny", rating: 6.3, platform: "Paramount+", imdb: "tt0175142" },
+      { title: "Not Another Teen Movie", year: 2001, genre: "Comedy", mood: "Funny", rating: 5.7, platform: "Netflix", imdb: "tt0277371" },
+      { title: "Walk Hard", year: 2007, genre: "Comedy", mood: "Funny", rating: 6.8, platform: "Netflix", imdb: "tt0841046" },
+      { title: "Borat", year: 2006, genre: "Comedy", mood: "Outrageous", rating: 7.4, platform: "Prime Video", imdb: "tt0443453" },
+      { title: "Brüno", year: 2009, genre: "Comedy", mood: "Outrageous", rating: 5.9, platform: "Prime Video", imdb: "tt0889583" },
+      { title: "Talladega Nights", year: 2006, genre: "Comedy", mood: "Funny", rating: 6.6, platform: "Netflix", imdb: "tt0415306" },
+      { title: "Blades of Glory", year: 2007, genre: "Comedy", mood: "Funny", rating: 6.3, platform: "Paramount+", imdb: "tt0445934" },
+      { title: "Semi-Pro", year: 2008, genre: "Comedy", mood: "Funny", rating: 5.8, platform: "HBO Max", imdb: "tt0839980" },
+      { title: "The Campaign", year: 2012, genre: "Comedy", mood: "Funny", rating: 6.1, platform: "HBO Max", imdb: "tt1790886" },
+      { title: "Get Hard", year: 2015, genre: "Comedy", mood: "Funny", rating: 6.0, platform: "HBO Max", imdb: "tt2561572" },
+      { title: "Ride Along", year: 2014, genre: "Comedy", mood: "Funny", rating: 6.1, platform: "Prime Video", imdb: "tt1408253" },
+      { title: "Central Intelligence", year: 2016, genre: "Comedy", mood: "Fun", rating: 6.3, platform: "Netflix", imdb: "tt1489889" },
+      { title: "Game Night", year: 2018, genre: "Comedy", mood: "Fun", rating: 6.9, platform: "HBO Max", imdb: "tt2704998" },
+      { title: "Tag", year: 2018, genre: "Comedy", mood: "Fun", rating: 6.5, platform: "HBO Max", imdb: "tt2854926" },
+      { title: "Blockers", year: 2018, genre: "Comedy", mood: "Funny", rating: 6.2, platform: "Hulu", imdb: "tt2531344" },
+      { title: "Booksmart", year: 2019, genre: "Comedy", mood: "Funny", rating: 7.2, platform: "Hulu", imdb: "tt1489887" },
+
+      // Drama Movies (100)
+      { title: "The Shawshank Redemption", year: 1994, genre: "Drama", mood: "Inspiring", rating: 9.3, platform: "Netflix", imdb: "tt0111161" },
+      { title: "Forrest Gump", year: 1994, genre: "Drama", mood: "Emotional", rating: 8.8, platform: "Paramount+", imdb: "tt0109830" },
+      { title: "The Godfather", year: 1972, genre: "Drama", mood: "Epic", rating: 9.2, platform: "Paramount+", imdb: "tt0068646" },
+      { title: "Schindler's List", year: 1993, genre: "Drama", mood: "Emotional", rating: 9.0, platform: "Netflix", imdb: "tt0108052" },
+      { title: "12 Angry Men", year: 1957, genre: "Drama", mood: "Tense", rating: 9.0, platform: "Prime Video", imdb: "tt0050083" },
+      { title: "A Beautiful Mind", year: 2001, genre: "Drama", mood: "Inspiring", rating: 8.2, platform: "Paramount+", imdb: "tt0268978" },
+      { title: "Spotlight", year: 2015, genre: "Drama", mood: "Gripping", rating: 8.1, platform: "Netflix", imdb: "tt1895587" },
+      { title: "Nomadland", year: 2020, genre: "Drama", mood: "Contemplative", rating: 7.3, platform: "Hulu", imdb: "tt9770150" },
+      { title: "Moonlight", year: 2016, genre: "Drama", mood: "Emotional", rating: 7.4, platform: "Netflix", imdb: "tt4975722" },
+      { title: "Manchester by the Sea", year: 2016, genre: "Drama", mood: "Emotional", rating: 7.8, platform: "Prime Video", imdb: "tt4034228" },
+      { title: "The Pianist", year: 2002, genre: "Drama", mood: "Powerful", rating: 8.5, platform: "Netflix", imdb: "tt0253474" },
+      { title: "Life is Beautiful", year: 1997, genre: "Drama", mood: "Heartwarming", rating: 8.6, platform: "Prime Video", imdb: "tt0118799" },
+      { title: "The Green Mile", year: 1999, genre: "Drama", mood: "Emotional", rating: 8.6, platform: "HBO Max", imdb: "tt0120689" },
+      { title: "Good Will Hunting", year: 1997, genre: "Drama", mood: "Inspiring", rating: 8.3, platform: "Netflix", imdb: "tt0119217" },
+      { title: "Dead Poets Society", year: 1989, genre: "Drama", mood: "Inspiring", rating: 8.1, platform: "Disney+", imdb: "tt0097165" },
+      { title: "The Pursuit of Happyness", year: 2006, genre: "Drama", mood: "Inspiring", rating: 8.0, platform: "Netflix", imdb: "tt0454921" },
+      { title: "A Star is Born", year: 2018, genre: "Drama", mood: "Emotional", rating: 7.6, platform: "HBO Max", imdb: "tt1517451" },
+      { title: "Whiplash", year: 2014, genre: "Drama", mood: "Intense", rating: 8.5, platform: "Netflix", imdb: "tt2582802" },
+      { title: "La La Land", year: 2016, genre: "Drama", mood: "Romantic", rating: 8.0, platform: "Prime Video", imdb: "tt3783958" },
+      { title: "Birdman", year: 2014, genre: "Drama", mood: "Intense", rating: 7.7, platform: "Hulu", imdb: "tt2562232" },
+      { title: "The Revenant", year: 2015, genre: "Drama", mood: "Intense", rating: 8.0, platform: "Disney+", imdb: "tt1663202" },
+      { title: "There Will Be Blood", year: 2007, genre: "Drama", mood: "Dark", rating: 8.2, platform: "Paramount+", imdb: "tt0469494" },
+      { title: "No Country for Old Men", year: 2007, genre: "Drama", mood: "Tense", rating: 8.2, platform: "Prime Video", imdb: "tt0477348" },
+      { title: "The Master", year: 2012, genre: "Drama", mood: "Complex", rating: 7.1, platform: "Prime Video", imdb: "tt1560747" },
+      { title: "Inherent Vice", year: 2014, genre: "Drama", mood: "Surreal", rating: 6.6, platform: "HBO Max", imdb: "tt1791528" },
+      { title: "Phantom Thread", year: 2017, genre: "Drama", mood: "Elegant", rating: 7.4, platform: "Netflix", imdb: "tt5776858" },
+      { title: "The Farewell", year: 2019, genre: "Drama", mood: "Emotional", rating: 7.5, platform: "Prime Video", imdb: "tt8637428" },
+      { title: "Parasite", year: 2019, genre: "Drama", mood: "Thrilling", rating: 8.5, platform: "Hulu", imdb: "tt6751668" },
+      { title: "Burning", year: 2018, genre: "Drama", mood: "Mysterious", rating: 7.5, platform: "Netflix", imdb: "tt7282468" },
+      { title: "Poetry", year: 2010, genre: "Drama", mood: "Contemplative", rating: 7.8, platform: "Prime Video", imdb: "tt1573185" },
+      { title: "The Handmaiden", year: 2016, genre: "Drama", mood: "Twisted", rating: 8.1, platform: "Prime Video", imdb: "tt4016934" },
+      { title: "Oldboy", year: 2003, genre: "Drama", mood: "Dark", rating: 8.4, platform: "HBO Max", imdb: "tt0364569" },
+      { title: "Memories of Murder", year: 2003, genre: "Drama", mood: "Dark", rating: 8.1, platform: "Hulu", imdb: "tt0353969" },
+      { title: "Mother", year: 2009, genre: "Drama", mood: "Intense", rating: 7.8, platform: "Netflix", imdb: "tt1216496" },
+      { title: "The Wailing", year: 2016, genre: "Drama", mood: "Dark", rating: 7.4, platform: "Netflix", imdb: "tt5215952" },
+      { title: "Train to Busan", year: 2016, genre: "Drama", mood: "Intense", rating: 7.6, platform: "Netflix", imdb: "tt5700672" },
+      { title: "Okja", year: 2017, genre: "Drama", mood: "Emotional", rating: 7.3, platform: "Netflix", imdb: "tt3967856" },
+      { title: "Snowpiercer", year: 2013, genre: "Drama", mood: "Dystopian", rating: 7.1, platform: "Netflix", imdb: "tt1706620" },
+      { title: "The Host", year: 2006, genre: "Drama", mood: "Thrilling", rating: 7.1, platform: "Hulu", imdb: "tt0468492" },
+      { title: "I Saw the Devil", year: 2010, genre: "Drama", mood: "Dark", rating: 7.8, platform: "Prime Video", imdb: "tt1588170" },
+      { title: "The Chaser", year: 2008, genre: "Drama", mood: "Intense", rating: 7.8, platform: "Prime Video", imdb: "tt1190539" },
+      { title: "The Yellow Sea", year: 2010, genre: "Drama", mood: "Intense", rating: 7.3, platform: "Prime Video", imdb: "tt1230385" },
+      { title: "A Taxi Driver", year: 2017, genre: "Drama", mood: "Powerful", rating: 7.9, platform: "Netflix", imdb: "tt6878038" },
+      { title: "1987: When the Day Comes", year: 2017, genre: "Drama", mood: "Powerful", rating: 7.8, platform: "Netflix", imdb: "tt6493286" },
+      { title: "The Attorney", year: 2013, genre: "Drama", mood: "Inspiring", rating: 7.8, platform: "Netflix", imdb: "tt3404140" },
+      { title: "Ode to My Father", year: 2014, genre: "Drama", mood: "Emotional", rating: 7.8, platform: "Netflix", imdb: "tt3824600" },
+      { title: "Miracle in Cell No. 7", year: 2013, genre: "Drama", mood: "Emotional", rating: 8.2, platform: "Netflix", imdb: "tt2659414" },
+      { title: "Silenced", year: 2011, genre: "Drama", mood: "Disturbing", rating: 8.1, platform: "Netflix", imdb: "tt2070649" },
+      { title: "Hope", year: 2013, genre: "Drama", mood: "Heartbreaking", rating: 8.2, platform: "Netflix", imdb: "tt3305098" },
+      { title: "The Man from Nowhere", year: 2010, genre: "Drama", mood: "Intense", rating: 7.8, platform: "Netflix", imdb: "tt1527788" },
+      { title: "Castaway on the Moon", year: 2009, genre: "Drama", mood: "Quirky", rating: 8.0, platform: "Prime Video", imdb: "tt1499666" },
+      { title: "Secret Sunshine", year: 2007, genre: "Drama", mood: "Emotional", rating: 7.5, platform: "Prime Video", imdb: "tt0911477" },
+      { title: "Peppermint Candy", year: 1999, genre: "Drama", mood: "Melancholic", rating: 7.7, platform: "Prime Video", imdb: "tt0247586" },
+      { title: "Oasis", year: 2002, genre: "Drama", mood: "Touching", rating: 7.9, platform: "Prime Video", imdb: "tt0320193" },
+      { title: "Spring, Summer, Fall, Winter", year: 2003, genre: "Drama", mood: "Meditative", rating: 8.0, platform: "Prime Video", imdb: "tt0374546" },
+      { title: "3-Iron", year: 2004, genre: "Drama", mood: "Poetic", rating: 8.0, platform: "Prime Video", imdb: "tt0423866" },
+      { title: "Pieta", year: 2012, genre: "Drama", mood: "Dark", rating: 7.2, platform: "Prime Video", imdb: "tt2299842" },
+      { title: "Thirst", year: 2009, genre: "Drama", mood: "Dark", rating: 7.1, platform: "Hulu", imdb: "tt0762073" },
+      { title: "Lady Vengeance", year: 2005, genre: "Drama", mood: "Stylish", rating: 7.6, platform: "Prime Video", imdb: "tt0451094" },
+      { title: "Sympathy for Mr. Vengeance", year: 2002, genre: "Drama", mood: "Dark", rating: 7.6, platform: "Prime Video", imdb: "tt0310775" },
+      { title: "Joint Security Area", year: 2000, genre: "Drama", mood: "Tense", rating: 7.8, platform: "Netflix", imdb: "tt0260991" },
+      { title: "Shiri", year: 1999, genre: "Drama", mood: "Thrilling", rating: 6.6, platform: "Prime Video", imdb: "tt0192657" },
+      { title: "Friend", year: 2001, genre: "Drama", mood: "Intense", rating: 7.3, platform: "Prime Video", imdb: "tt0281718" },
+      { title: "A Bittersweet Life", year: 2005, genre: "Drama", mood: "Stylish", rating: 7.5, platform: "Netflix", imdb: "tt0456912" },
+      { title: "A Moment to Remember", year: 2004, genre: "Drama", mood: "Romantic", rating: 8.2, platform: "Netflix", imdb: "tt0428870" },
+      { title: "Always", year: 2011, genre: "Drama", mood: "Romantic", rating: 7.8, platform: "Netflix", imdb: "tt1606384" },
+      { title: "Architecture 101", year: 2012, genre: "Drama", mood: "Nostalgic", rating: 7.3, platform: "Netflix", imdb: "tt2337981" },
+      { title: "Il Mare", year: 2000, genre: "Drama", mood: "Romantic", rating: 7.6, platform: "Prime Video", imdb: "tt0282599" },
+      { title: "My Sassy Girl", year: 2001, genre: "Drama", mood: "Romantic", rating: 8.0, platform: "Netflix", imdb: "tt0293715" },
+      { title: "Windstruck", year: 2004, genre: "Drama", mood: "Romantic", rating: 7.2, platform: "Prime Video", imdb: "tt0409904" },
+      { title: "The Classic", year: 2003, genre: "Drama", mood: "Romantic", rating: 7.8, platform: "Netflix", imdb: "tt0373968" },
+      { title: "Christmas in August", year: 1998, genre: "Drama", mood: "Melancholic", rating: 7.6, platform: "Prime Video", imdb: "tt0159331" },
+      { title: "One Fine Spring Day", year: 2001, genre: "Drama", mood: "Melancholic", rating: 7.1, platform: "Prime Video", imdb: "tt0302526" },
+      { title: "April Snow", year: 2005, genre: "Drama", mood: "Melancholic", rating: 6.6, platform: "Prime Video", imdb: "tt0456664" },
+      { title: "Ditto", year: 2000, genre: "Drama", mood: "Romantic", rating: 7.0, platform: "Prime Video", imdb: "tt0242541" },
+      { title: "The Notebook", year: 2004, genre: "Drama", mood: "Romantic", rating: 7.8, platform: "Netflix", imdb: "tt0332280" },
+      { title: "Titanic", year: 1997, genre: "Drama", mood: "Epic", rating: 7.9, platform: "Paramount+", imdb: "tt0120338" },
+      { title: "The Fault in Our Stars", year: 2014, genre: "Drama", mood: "Emotional", rating: 7.7, platform: "Disney+", imdb: "tt2582846" },
+      { title: "Me Before You", year: 2016, genre: "Drama", mood: "Emotional", rating: 7.4, platform: "HBO Max", imdb: "tt2674426" },
+      { title: "Five Feet Apart", year: 2019, genre: "Drama", mood: "Emotional", rating: 7.2, platform: "Hulu", imdb: "tt8267802" },
+      { title: "If I Stay", year: 2014, genre: "Drama", mood: "Emotional", rating: 6.7, platform: "Netflix", imdb: "tt1837797" },
+      { title: "The Perks of Being a Wallflower", year: 2012, genre: "Drama", mood: "Coming-of-age", rating: 7.9, platform: "Prime Video", imdb: "tt1659337" },
+      { title: "Lady Bird", year: 2017, genre: "Drama", mood: "Coming-of-age", rating: 7.4, platform: "Prime Video", imdb: "tt4925292" },
+      { title: "Eighth Grade", year: 2018, genre: "Drama", mood: "Coming-of-age", rating: 7.4, platform: "Hulu", imdb: "tt7014006" },
+      { title: "The Edge of Seventeen", year: 2016, genre: "Drama", mood: "Coming-of-age", rating: 7.3, platform: "Netflix", imdb: "tt1878870" },
+      { title: "Call Me by Your Name", year: 2017, genre: "Drama", mood: "Romantic", rating: 7.8, platform: "HBO Max", imdb: "tt5726616" },
+      { title: "Carol", year: 2015, genre: "Drama", mood: "Romantic", rating: 7.2, platform: "Netflix", imdb: "tt2402927" },
+      { title: "Brokeback Mountain", year: 2005, genre: "Drama", mood: "Emotional", rating: 7.7, platform: "Netflix", imdb: "tt0388795" },
+      { title: "Milk", year: 2008, genre: "Drama", mood: "Powerful", rating: 7.5, platform: "Netflix", imdb: "tt1013753" },
+      { title: "Philadelphia", year: 1993, genre: "Drama", mood: "Powerful", rating: 7.7, platform: "Netflix", imdb: "tt0107818" },
+      { title: "Precious", year: 2009, genre: "Drama", mood: "Powerful", rating: 7.3, platform: "Hulu", imdb: "tt0929632" },
+      { title: "The Help", year: 2011, genre: "Drama", mood: "Inspiring", rating: 8.1, platform: "Netflix", imdb: "tt1454029" },
+      { title: "Hidden Figures", year: 2016, genre: "Drama", mood: "Inspiring", rating: 7.8, platform: "Disney+", imdb: "tt4846340" },
+      { title: "Selma", year: 2014, genre: "Drama", mood: "Powerful", rating: 7.5, platform: "Paramount+", imdb: "tt1020072" },
+      { title: "12 Years a Slave", year: 2013, genre: "Drama", mood: "Powerful", rating: 8.1, platform: "Hulu", imdb: "tt2024544" },
+      { title: "Django Unchained", year: 2012, genre: "Drama", mood: "Intense", rating: 8.4, platform: "Netflix", imdb: "tt1853728" },
+      { title: "Lincoln", year: 2012, genre: "Drama", mood: "Historical", rating: 7.3, platform: "Disney+", imdb: "tt0443272" },
+      { title: "The King's Speech", year: 2010, genre: "Drama", mood: "Inspiring", rating: 8.0, platform: "Netflix", imdb: "tt1504320" },
+
+      // Horror Movies (100)
+      { title: "Get Out", year: 2017, genre: "Horror", mood: "Scary", rating: 7.7, platform: "Prime Video", imdb: "tt5052448" },
+      { title: "A Quiet Place", year: 2018, genre: "Horror", mood: "Tense", rating: 7.5, platform: "Paramount+", imdb: "tt6644200" },
+      { title: "Hereditary", year: 2018, genre: "Horror", mood: "Disturbing", rating: 7.3, platform: "Prime Video", imdb: "tt7784604" },
+      { title: "The Witch", year: 2015, genre: "Horror", mood: "Creepy", rating: 7.0, platform: "Netflix", imdb: "tt4263482" },
+      { title: "It Follows", year: 2014, genre: "Horror", mood: "Creepy", rating: 6.8, platform: "Netflix", imdb: "tt3235888" },
+      { title: "Alien", year: 1979, genre: "Horror", mood: "Scary", rating: 8.5, platform: "Hulu", imdb: "tt0078748" },
+      { title: "28 Days Later", year: 2002, genre: "Horror", mood: "Intense", rating: 7.5, platform: "Hulu", imdb: "tt0289043" },
+      { title: "The Shining", year: 1980, genre: "Horror", mood: "Disturbing", rating: 8.4, platform: "HBO Max", imdb: "tt0081505" },
+      { title: "The Thing", year: 1982, genre: "Horror", mood: "Paranoid", rating: 8.2, platform: "Prime Video", imdb: "tt0084787" },
+      { title: "The Exorcist", year: 1973, genre: "Horror", mood: "Terrifying", rating: 8.1, platform: "HBO Max", imdb: "tt0070047" },
+      { title: "The Conjuring", year: 2013, genre: "Horror", mood: "Scary", rating: 7.5, platform: "HBO Max", imdb: "tt1457767" },
+      { title: "Insidious", year: 2010, genre: "Horror", mood: "Creepy", rating: 6.8, platform: "Netflix", imdb: "tt1591095" },
+      { title: "Sinister", year: 2012, genre: "Horror", mood: "Disturbing", rating: 6.8, platform: "Prime Video", imdb: "tt1922777" },
+      { title: "The Babadook", year: 2014, genre: "Horror", mood: "Psychological", rating: 6.8, platform: "Netflix", imdb: "tt2321549" },
+      { title: "Midsommar", year: 2019, genre: "Horror", mood: "Disturbing", rating: 7.1, platform: "Prime Video", imdb: "tt8772262" },
+      { title: "Us", year: 2019, genre: "Horror", mood: "Creepy", rating: 6.8, platform: "Netflix", imdb: "tt6857112" },
+      { title: "Nope", year: 2022, genre: "Horror", mood: "Mysterious", rating: 6.8, platform: "Prime Video", imdb: "tt10954984" },
+      { title: "The Ring", year: 2002, genre: "Horror", mood: "Creepy", rating: 7.1, platform: "Paramount+", imdb: "tt0298130" },
+      { title: "The Grudge", year: 2004, genre: "Horror", mood: "Creepy", rating: 5.9, platform: "Netflix", imdb: "tt0391198" },
+      { title: "Dark Water", year: 2005, genre: "Horror", mood: "Eerie", rating: 5.6, platform: "Prime Video", imdb: "tt0382628" },
+      { title: "Ringu", year: 1998, genre: "Horror", mood: "Creepy", rating: 7.2, platform: "Prime Video", imdb: "tt0178868" },
+      { title: "Ju-on: The Grudge", year: 2002, genre: "Horror", mood: "Terrifying", rating: 6.7, platform: "Prime Video", imdb: "tt0364385" },
+      { title: "Pulse", year: 2001, genre: "Horror", mood: "Creepy", rating: 6.5, platform: "Prime Video", imdb: "tt0286751" },
+      { title: "Audition", year: 1999, genre: "Horror", mood: "Disturbing", rating: 7.1, platform: "Prime Video", imdb: "tt0235198" },
+      { title: "Battle Royale", year: 2000, genre: "Horror", mood: "Intense", rating: 7.6, platform: "Prime Video", imdb: "tt0266308" },
+      { title: "One Missed Call", year: 2003, genre: "Horror", mood: "Creepy", rating: 6.2, platform: "Prime Video", imdb: "tt0366292" },
+      { title: "Noroi: The Curse", year: 2005, genre: "Horror", mood: "Creepy", rating: 7.0, platform: "Prime Video", imdb: "tt0930083" },
+      { title: "Kairo", year: 2001, genre: "Horror", mood: "Eerie", rating: 6.5, platform: "Prime Video", imdb: "tt0286751" },
+      { title: "The Wailing", year: 2016, genre: "Horror", mood: "Mysterious", rating: 7.4, platform: "Netflix", imdb: "tt5215952" },
+      { title: "Train to Busan", year: 2016, genre: "Horror", mood: "Intense", rating: 7.6, platform: "Netflix", imdb: "tt5700672" },
+      { title: "I Saw the Devil", year: 2010, genre: "Horror", mood: "Brutal", rating: 7.8, platform: "Prime Video", imdb: "tt1588170" },
+      { title: "The Host", year: 2006, genre: "Horror", mood: "Creepy", rating: 7.1, platform: "Hulu", imdb: "tt0468492" },
+      { title: "A Tale of Two Sisters", year: 2003, genre: "Horror", mood: "Psychological", rating: 7.1, platform: "Prime Video", imdb: "tt0365376" },
+      { title: "Thirst", year: 2009, genre: "Horror", mood: "Dark", rating: 7.1, platform: "Hulu", imdb: "tt0762073" },
+      { title: "Memories of Murder", year: 2003, genre: "Horror", mood: "Dark", rating: 8.1, platform: "Hulu", imdb: "tt0353969" },
+      { title: "The Chaser", year: 2008, genre: "Horror", mood: "Intense", rating: 7.8, platform: "Prime Video", imdb: "tt1190539" },
+      { title: "The Yellow Sea", year: 2010, genre: "Horror", mood: "Intense", rating: 7.3, platform: "Prime Video", imdb: "tt1230385" },
+      { title: "Mother", year: 2009, genre: "Horror", mood: "Dark", rating: 7.8, platform: "Netflix", imdb: "tt1216496" },
+      { title: "Bedevilled", year: 2010, genre: "Horror", mood: "Brutal", rating: 7.3, platform: "Prime Video", imdb: "tt1646959" },
+      { title: "The Man from Nowhere", year: 2010, genre: "Horror", mood: "Intense", rating: 7.8, platform: "Netflix", imdb: "tt1527788" },
+      { title: "Oldboy", year: 2003, genre: "Horror", mood: "Disturbing", rating: 8.4, platform: "HBO Max", imdb: "tt0364569" },
+      { title: "Lady Vengeance", year: 2005, genre: "Horror", mood: "Dark", rating: 7.6, platform: "Prime Video", imdb: "tt0451094" },
+      { title: "Sympathy for Mr. Vengeance", year: 2002, genre: "Horror", mood: "Dark", rating: 7.6, platform: "Prime Video", imdb: "tt0310775" },
+      { title: "Pieta", year: 2012, genre: "Horror", mood: "Brutal", rating: 7.2, platform: "Prime Video", imdb: "tt2299842" },
+      { title: "Moebius", year: 2013, genre: "Horror", mood: "Disturbing", rating: 6.4, platform: "Prime Video", imdb: "tt2820394" },
+      { title: "The Handmaiden", year: 2016, genre: "Horror", mood: "Twisted", rating: 8.1, platform: "Prime Video", imdb: "tt4016934" },
+      { title: "The Quiet Family", year: 1998, genre: "Horror", mood: "Dark Comedy", rating: 7.0, platform: "Prime Video", imdb: "tt0188503" },
+      { title: "Save the Green Planet!", year: 2003, genre: "Horror", mood: "Weird", rating: 7.3, platform: "Prime Video", imdb: "tt0353471" },
+      { title: "Hansel and Gretel", year: 2007, genre: "Horror", mood: "Creepy", rating: 6.7, platform: "Prime Video", imdb: "tt1118586" },
+      { title: "Possessed", year: 2009, genre: "Horror", mood: "Creepy", rating: 6.3, platform: "Prime Video", imdb: "tt1425373" },
+      { title: "Evil Dead Rise", year: 2023, genre: "Horror", mood: "Intense", rating: 6.6, platform: "HBO Max", imdb: "tt13345606" },
+      { title: "Evil Dead", year: 2013, genre: "Horror", mood: "Brutal", rating: 6.5, platform: "HBO Max", imdb: "tt1288558" },
+      { title: "The Evil Dead", year: 1981, genre: "Horror", mood: "Classic", rating: 7.4, platform: "Paramount+", imdb: "tt0083907" },
+      { title: "Evil Dead II", year: 1987, genre: "Horror", mood: "Fun", rating: 7.7, platform: "Paramount+", imdb: "tt0092991" },
+      { title: "Army of Darkness", year: 1992, genre: "Horror", mood: "Fun", rating: 7.4, platform: "Paramount+", imdb: "tt0106308" },
+      { title: "Scream", year: 1996, genre: "Horror", mood: "Scary", rating: 7.4, platform: "Paramount+", imdb: "tt0117571" },
+      { title: "Scream VI", year: 2023, genre: "Horror", mood: "Thrilling", rating: 6.6, platform: "Paramount+", imdb: "tt17663992" },
+      { title: "Halloween", year: 1978, genre: "Horror", mood: "Classic", rating: 7.7, platform: "Prime Video", imdb: "tt0077651" },
+      { title: "Halloween Kills", year: 2021, genre: "Horror", mood: "Brutal", rating: 5.5, platform: "Prime Video", imdb: "tt10665338" },
+      { title: "Halloween Ends", year: 2022, genre: "Horror", mood: "Dark", rating: 5.0, platform: "Prime Video", imdb: "tt10665342" },
+      { title: "Friday the 13th", year: 1980, genre: "Horror", mood: "Classic", rating: 6.4, platform: "Paramount+", imdb: "tt0080761" },
+      { title: "A Nightmare on Elm Street", year: 1984, genre: "Horror", mood: "Creepy", rating: 7.4, platform: "HBO Max", imdb: "tt0087800" },
+      { title: "Child's Play", year: 1988, genre: "Horror", mood: "Creepy", rating: 6.7, platform: "Prime Video", imdb: "tt0094862" },
+      { title: "Saw", year: 2004, genre: "Horror", mood: "Brutal", rating: 7.6, platform: "Netflix", imdb: "tt0387564" },
+      { title: "Saw X", year: 2023, genre: "Horror", mood: "Brutal", rating: 6.6, platform: "Netflix", imdb: "tt21807222" },
+      { title: "Hostel", year: 2005, genre: "Horror", mood: "Brutal", rating: 5.9, platform: "Prime Video", imdb: "tt0450278" },
+      { title: "The Texas Chainsaw Massacre", year: 1974, genre: "Horror", mood: "Terrifying", rating: 7.4, platform: "Netflix", imdb: "tt0072271" },
+      { title: "The Hills Have Eyes", year: 1977, genre: "Horror", mood: "Brutal", rating: 6.3, platform: "Prime Video", imdb: "tt0077681" },
+      { title: "The Descent", year: 2005, genre: "Horror", mood: "Claustrophobic", rating: 7.2, platform: "Prime Video", imdb: "tt0435625" },
+      { title: "The Cabin in the Woods", year: 2011, genre: "Horror", mood: "Clever", rating: 7.0, platform: "Netflix", imdb: "tt1259521" },
+      { title: "Tucker and Dale vs Evil", year: 2010, genre: "Horror", mood: "Funny", rating: 7.5, platform: "Netflix", imdb: "tt1465522" },
+      { title: "Shaun of the Dead", year: 2004, genre: "Horror", mood: "Funny", rating: 7.9, platform: "Prime Video", imdb: "tt0365748" },
+      { title: "Zombieland", year: 2009, genre: "Horror", mood: "Fun", rating: 7.6, platform: "Netflix", imdb: "tt1156398" },
+      { title: "World War Z", year: 2013, genre: "Horror", mood: "Thrilling", rating: 7.0, platform: "Paramount+", imdb: "tt0816711" },
+      { title: "Dawn of the Dead", year: 2004, genre: "Horror", mood: "Intense", rating: 7.3, platform: "Prime Video", imdb: "tt0363547" },
+      { title: "Night of the Living Dead", year: 1968, genre: "Horror", mood: "Classic", rating: 7.8, platform: "Prime Video", imdb: "tt0063350" },
+      { title: "The Crazies", year: 2010, genre: "Horror", mood: "Intense", rating: 6.5, platform: "Prime Video", imdb: "tt0455407" },
+      { title: "[REC]", year: 2007, genre: "Horror", mood: "Intense", rating: 7.4, platform: "Prime Video", imdb: "tt1038988" },
+      { title: "Quarantine", year: 2008, genre: "Horror", mood: "Intense", rating: 5.9, platform: "Prime Video", imdb: "tt1082868" },
+      { title: "The Blair Witch Project", year: 1999, genre: "Horror", mood: "Creepy", rating: 6.5, platform: "Hulu", imdb: "tt0185937" },
+      { title: "Paranormal Activity", year: 2007, genre: "Horror", mood: "Creepy", rating: 6.3, platform: "Paramount+", imdb: "tt1179904" },
+      { title: "V/H/S", year: 2012, genre: "Horror", mood: "Creepy", rating: 5.8, platform: "Prime Video", imdb: "tt2105044" },
+      { title: "The Visit", year: 2015, genre: "Horror", mood: "Creepy", rating: 6.3, platform: "Prime Video", imdb: "tt3567288" },
+      { title: "Split", year: 2016, genre: "Horror", mood: "Psychological", rating: 7.3, platform: "Prime Video", imdb: "tt4972582" },
+      { title: "Glass", year: 2019, genre: "Horror", mood: "Psychological", rating: 6.6, platform: "Prime Video", imdb: "tt6823368" },
+      { title: "Unbreakable", year: 2000, genre: "Horror", mood: "Suspenseful", rating: 7.3, platform: "Disney+", imdb: "tt0217869" },
+      { title: "The Sixth Sense", year: 1999, genre: "Horror", mood: "Creepy", rating: 8.2, platform: "Disney+", imdb: "tt0167404" },
+      { title: "Signs", year: 2002, genre: "Horror", mood: "Suspenseful", rating: 6.8, platform: "Disney+", imdb: "tt0286106" },
+      { title: "The Village", year: 2004, genre: "Horror", mood: "Mysterious", rating: 6.6, platform: "Disney+", imdb: "tt0368447" },
+      { title: "The Happening", year: 2008, genre: "Horror", mood: "Eerie", rating: 5.0, platform: "HBO Max", imdb: "tt0949731" },
+      { title: "Old", year: 2021, genre: "Horror", mood: "Mysterious", rating: 5.8, platform: "Prime Video", imdb: "tt10954652" },
+      { title: "Knock at the Cabin", year: 2023, genre: "Horror", mood: "Tense", rating: 6.1, platform: "Prime Video", imdb: "tt15255876" },
+      { title: "The Omen", year: 1976, genre: "Horror", mood: "Creepy", rating: 7.5, platform: "HBO Max", imdb: "tt0075005" },
+      { title: "Rosemary's Baby", year: 1968, genre: "Horror", mood: "Paranoid", rating: 8.0, platform: "Paramount+", imdb: "tt0063522" },
+      { title: "Carrie", year: 1976, genre: "Horror", mood: "Tragic", rating: 7.4, platform: "HBO Max", imdb: "tt0074285" },
+      { title: "Misery", year: 1990, genre: "Horror", mood: "Intense", rating: 7.8, platform: "HBO Max", imdb: "tt0100157" },
+      { title: "It", year: 2017, genre: "Horror", mood: "Scary", rating: 7.3, platform: "HBO Max", imdb: "tt1396484" },
+
+      // Romance Movies (100)
+      { title: "Pride & Prejudice", year: 2005, genre: "Romance", mood: "Romantic", rating: 7.8, platform: "Netflix", imdb: "tt0414387" },
+      { title: "The Notebook", year: 2004, genre: "Romance", mood: "Emotional", rating: 7.8, platform: "Netflix", imdb: "tt0332280" },
+      { title: "La La Land", year: 2016, genre: "Romance", mood: "Bittersweet", rating: 8.0, platform: "Prime Video", imdb: "tt3783958" },
+      { title: "Crazy, Stupid, Love", year: 2011, genre: "Romance", mood: "Funny", rating: 7.4, platform: "HBO Max", imdb: "tt1570728" },
+      { title: "500 Days of Summer", year: 2009, genre: "Romance", mood: "Bittersweet", rating: 7.7, platform: "Disney+", imdb: "tt1022603" },
+      { title: "Eternal Sunshine", year: 2004, genre: "Romance", mood: "Melancholic", rating: 8.3, platform: "Prime Video", imdb: "tt0338013" },
+      { title: "Before Sunrise", year: 1995, genre: "Romance", mood: "Romantic", rating: 8.1, platform: "HBO Max", imdb: "tt0112471" },
+      { title: "Before Sunset", year: 2004, genre: "Romance", mood: "Nostalgic", rating: 8.1, platform: "HBO Max", imdb: "tt0381681" },
+      { title: "Before Midnight", year: 2013, genre: "Romance", mood: "Mature", rating: 7.9, platform: "HBO Max", imdb: "tt2209418" },
+      { title: "Blue Valentine", year: 2010, genre: "Romance", mood: "Heartbreaking", rating: 7.3, platform: "Netflix", imdb: "tt1120985" },
+      { title: "Her", year: 2013, genre: "Romance", mood: "Melancholic", rating: 8.0, platform: "HBO Max", imdb: "tt1798709" },
+      { title: "Lost in Translation", year: 2003, genre: "Romance", mood: "Melancholic", rating: 7.7, platform: "Netflix", imdb: "tt0335266" },
+      { title: "In the Mood for Love", year: 2000, genre: "Romance", mood: "Melancholic", rating: 8.1, platform: "HBO Max", imdb: "tt0118694" },
+      { title: "Chungking Express", year: 1994, genre: "Romance", mood: "Whimsical", rating: 8.0, platform: "HBO Max", imdb: "tt0109424" },
+      { title: "My Blueberry Nights", year: 2007, genre: "Romance", mood: "Melancholic", rating: 6.6, platform: "Prime Video", imdb: "tt0765120" },
+      { title: "2046", year: 2004, genre: "Romance", mood: "Melancholic", rating: 7.4, platform: "HBO Max", imdb: "tt0212712" },
+      { title: "Fallen Angels", year: 1995, genre: "Romance", mood: "Stylish", rating: 7.6, platform: "HBO Max", imdb: "tt0112913" },
+      { title: "Happy Together", year: 1997, genre: "Romance", mood: "Passionate", rating: 7.7, platform: "HBO Max", imdb: "tt0118845" },
+      { title: "The Handmaiden", year: 2016, genre: "Romance", mood: "Twisted", rating: 8.1, platform: "Prime Video", imdb: "tt4016934" },
+      { title: "A Moment to Remember", year: 2004, genre: "Romance", mood: "Emotional", rating: 8.2, platform: "Netflix", imdb: "tt0428870" },
+      { title: "Always", year: 2011, genre: "Romance", mood: "Emotional", rating: 7.8, platform: "Netflix", imdb: "tt1606384" },
+      { title: "Architecture 101", year: 2012, genre: "Romance", mood: "Nostalgic", rating: 7.3, platform: "Netflix", imdb: "tt2337981" },
+      { title: "Il Mare", year: 2000, genre: "Romance", mood: "Magical", rating: 7.6, platform: "Prime Video", imdb: "tt0282599" },
+      { title: "My Sassy Girl", year: 2001, genre: "Romance", mood: "Funny", rating: 8.0, platform: "Netflix", imdb: "tt0293715" },
+      { title: "Windstruck", year: 2004, genre: "Romance", mood: "Emotional", rating: 7.2, platform: "Prime Video", imdb: "tt0409904" },
+      { title: "The Classic", year: 2003, genre: "Romance", mood: "Nostalgic", rating: 7.8, platform: "Netflix", imdb: "tt0373968" },
+      { title: "Christmas in August", year: 1998, genre: "Romance", mood: "Melancholic", rating: 7.6, platform: "Prime Video", imdb: "tt0159331" },
+      { title: "One Fine Spring Day", year: 2001, genre: "Romance", mood: "Melancholic", rating: 7.1, platform: "Prime Video", imdb: "tt0302526" },
+      { title: "April Snow", year: 2005, genre: "Romance", mood: "Melancholic", rating: 6.6, platform: "Prime Video", imdb: "tt0456664" },
+      { title: "Ditto", year: 2000, genre: "Romance", mood: "Magical", rating: 7.0, platform: "Prime Video", imdb: "tt0242541" },
+      { title: "Love Letter", year: 1995, genre: "Romance", mood: "Melancholic", rating: 7.9, platform: "Prime Video", imdb: "tt0113679" },
+      { title: "Hua yang nian hua", year: 2000, genre: "Romance", mood: "Nostalgic", rating: 8.1, platform: "HBO Max", imdb: "tt0118694" },
+      { title: "Comrades: Almost a Love Story", year: 1996, genre: "Romance", mood: "Bittersweet", rating: 7.7, platform: "Prime Video", imdb: "tt0116868" },
+      { title: "Days of Being Wild", year: 1990, genre: "Romance", mood: "Melancholic", rating: 7.4, platform: "HBO Max", imdb: "tt0101258" },
+      { title: "In the Mood for Love", year: 2000, genre: "Romance", mood: "Yearning", rating: 8.1, platform: "HBO Max", imdb: "tt0118694" },
+      { title: "Amélie", year: 2001, genre: "Romance", mood: "Whimsical", rating: 8.3, platform: "Netflix", imdb: "tt0211915" },
+      { title: "Blue Is the Warmest Color", year: 2013, genre: "Romance", mood: "Passionate", rating: 7.7, platform: "Prime Video", imdb: "tt2278871" },
+      { title: "Portrait of a Lady on Fire", year: 2019, genre: "Romance", mood: "Passionate", rating: 8.1, platform: "Hulu", imdb: "tt8613070" },
+      { title: "Carol", year: 2015, genre: "Romance", mood: "Elegant", rating: 7.2, platform: "Netflix", imdb: "tt2402927" },
+      { title: "Call Me by Your Name", year: 2017, genre: "Romance", mood: "Nostalgic", rating: 7.8, platform: "HBO Max", imdb: "tt5726616" },
+      { title: "Moonlight", year: 2016, genre: "Romance", mood: "Emotional", rating: 7.4, platform: "Netflix", imdb: "tt4975722" },
+      { title: "Brokeback Mountain", year: 2005, genre: "Romance", mood: "Heartbreaking", rating: 7.7, platform: "Netflix", imdb: "tt0388795" },
+      { title: "If Beale Street Could Talk", year: 2018, genre: "Romance", mood: "Poetic", rating: 7.1, platform: "Hulu", imdb: "tt7125860" },
+      { title: "The Shape of Water", year: 2017, genre: "Romance", mood: "Magical", rating: 7.3, platform: "Hulu", imdb: "tt5580390" },
+      { title: "Brooklyn", year: 2015, genre: "Romance", mood: "Heartwarming", rating: 7.5, platform: "Netflix", imdb: "tt2381111" },
+      { title: "Atonement", year: 2007, genre: "Romance", mood: "Tragic", rating: 7.8, platform: "Netflix", imdb: "tt0783233" },
+      { title: "The English Patient", year: 1996, genre: "Romance", mood: "Epic", rating: 7.4, platform: "HBO Max", imdb: "tt0116209" },
+      { title: "Out of Africa", year: 1985, genre: "Romance", mood: "Epic", rating: 7.1, platform: "Prime Video", imdb: "tt0089755" },
+      { title: "Doctor Zhivago", year: 1965, genre: "Romance", mood: "Epic", rating: 7.9, platform: "HBO Max", imdb: "tt0059113" },
+      { title: "Gone with the Wind", year: 1939, genre: "Romance", mood: "Epic", rating: 8.2, platform: "HBO Max", imdb: "tt0031381" },
+      { title: "Casablanca", year: 1942, genre: "Romance", mood: "Classic", rating: 8.5, platform: "HBO Max", imdb: "tt0034583" },
+      { title: "Roman Holiday", year: 1953, genre: "Romance", mood: "Charming", rating: 8.0, platform: "Paramount+", imdb: "tt0046250" },
+      { title: "Sabrina", year: 1954, genre: "Romance", mood: "Charming", rating: 7.6, platform: "Paramount+", imdb: "tt0047437" },
+      { title: "Breakfast at Tiffany's", year: 1961, genre: "Romance", mood: "Iconic", rating: 7.6, platform: "Paramount+", imdb: "tt0054698" },
+      { title: "My Fair Lady", year: 1964, genre: "Romance", mood: "Charming", rating: 7.8, platform: "Paramount+", imdb: "tt0058385" },
+      { title: "West Side Story", year: 1961, genre: "Romance", mood: "Tragic", rating: 7.6, platform: "Disney+", imdb: "tt0055614" },
+      { title: "The Sound of Music", year: 1965, genre: "Romance", mood: "Uplifting", rating: 8.1, platform: "Disney+", imdb: "tt0059742" },
+      { title: "Singin' in the Rain", year: 1952, genre: "Romance", mood: "Joyful", rating: 8.3, platform: "HBO Max", imdb: "tt0045152" },
+      { title: "An American in Paris", year: 1951, genre: "Romance", mood: "Artistic", rating: 7.2, platform: "HBO Max", imdb: "tt0043278" },
+      { title: "The Apartment", year: 1960, genre: "Romance", mood: "Bittersweet", rating: 8.2, platform: "Prime Video", imdb: "tt0053604" },
+      { title: "When Harry Met Sally", year: 1989, genre: "Romance", mood: "Funny", rating: 7.7, platform: "HBO Max", imdb: "tt0098635" },
+      { title: "Sleepless in Seattle", year: 1993, genre: "Romance", mood: "Charming", rating: 6.8, platform: "Paramount+", imdb: "tt0108160" },
+      { title: "You've Got Mail", year: 1998, genre: "Romance", mood: "Charming", rating: 6.6, platform: "HBO Max", imdb: "tt0128853" },
+      { title: "Notting Hill", year: 1999, genre: "Romance", mood: "Charming", rating: 7.2, platform: "Prime Video", imdb: "tt0125439" },
+      { title: "Four Weddings and a Funeral", year: 1994, genre: "Romance", mood: "Charming", rating: 7.1, platform: "HBO Max", imdb: "tt0109831" },
+      { title: "Love Actually", year: 2003, genre: "Romance", mood: "Heartwarming", rating: 7.6, platform: "Prime Video", imdb: "tt0314331" },
+      { title: "The Holiday", year: 2006, genre: "Romance", mood: "Cozy", rating: 6.9, platform: "Netflix", imdb: "tt0457939" },
+      { title: "Serendipity", year: 2001, genre: "Romance", mood: "Magical", rating: 6.8, platform: "HBO Max", imdb: "tt0240890" },
+      { title: "Kate & Leopold", year: 2001, genre: "Romance", mood: "Charming", rating: 6.4, platform: "Disney+", imdb: "tt0035423" },
+      { title: "The Time Traveler's Wife", year: 2009, genre: "Romance", mood: "Bittersweet", rating: 7.1, platform: "HBO Max", imdb: "tt0452694" },
+      { title: "About Time", year: 2013, genre: "Romance", mood: "Heartwarming", rating: 7.8, platform: "Netflix", imdb: "tt2194499" },
+      { title: "Midnight in Paris", year: 2011, genre: "Romance", mood: "Whimsical", rating: 7.7, platform: "Netflix", imdb: "tt1605783" },
+      { title: "To Rome with Love", year: 2012, genre: "Romance", mood: "Whimsical", rating: 6.3, platform: "Prime Video", imdb: "tt1859650" },
+      { title: "Vicky Cristina Barcelona", year: 2008, genre: "Romance", mood: "Passionate", rating: 7.1, platform: "Netflix", imdb: "tt0497465" },
+      { title: "Annie Hall", year: 1977, genre: "Romance", mood: "Clever", rating: 8.0, platform: "Prime Video", imdb: "tt0075686" },
+      { title: "Manhattan", year: 1979, genre: "Romance", mood: "Nostalgic", rating: 7.9, platform: "Prime Video", imdb: "tt0079522" },
+      { title: "Hannah and Her Sisters", year: 1986, genre: "Romance", mood: "Thoughtful", rating: 7.9, platform: "Prime Video", imdb: "tt0091167" },
+      { title: "Blue Jasmine", year: 2013, genre: "Romance", mood: "Tragic", rating: 7.3, platform: "Prime Video", imdb: "tt2334873" },
+      { title: "Magic in the Moonlight", year: 2014, genre: "Romance", mood: "Charming", rating: 6.5, platform: "Prime Video", imdb: "tt2870756" },
+      { title: "Café Society", year: 2016, genre: "Romance", mood: "Nostalgic", rating: 6.6, platform: "Prime Video", imdb: "tt4513674" },
+      { title: "The Big Sick", year: 2017, genre: "Romance", mood: "Heartwarming", rating: 7.5, platform: "Prime Video", imdb: "tt5462602" },
+      { title: "Crazy Rich Asians", year: 2018, genre: "Romance", mood: "Fun", rating: 6.9, platform: "HBO Max", imdb: "tt3104988" },
+      { title: "To All the Boys I've Loved Before", year: 2018, genre: "Romance", mood: "Sweet", rating: 7.0, platform: "Netflix", imdb: "tt3846642" },
+      { title: "The Half of It", year: 2020, genre: "Romance", mood: "Thoughtful", rating: 6.9, platform: "Netflix", imdb: "tt9683478" },
+      { title: "Palm Springs", year: 2020, genre: "Romance", mood: "Fun", rating: 7.4, platform: "Hulu", imdb: "tt9484998" },
+      { title: "Emma", year: 2020, genre: "Romance", mood: "Charming", rating: 6.7, platform: "Netflix", imdb: "tt9214832" },
+      { title: "Persuasion", year: 2022, genre: "Romance", mood: "Melancholic", rating: 5.8, platform: "Netflix", imdb: "tt13456318" },
+      { title: "Sense and Sensibility", year: 1995, genre: "Romance", mood: "Classic", rating: 7.7, platform: "Prime Video", imdb: "tt0114388" },
+      { title: "Emma", year: 1996, genre: "Romance", mood: "Charming", rating: 6.7, platform: "Prime Video", imdb: "tt0116191" },
+      { title: "Becoming Jane", year: 2007, genre: "Romance", mood: "Bittersweet", rating: 7.0, platform: "HBO Max", imdb: "tt0416508" },
+      { title: "Bright Star", year: 2009, genre: "Romance", mood: "Poetic", rating: 6.9, platform: "Prime Video", imdb: "tt0810784" },
+      { title: "Jane Eyre", year: 2011, genre: "Romance", mood: "Gothic", rating: 7.3, platform: "Prime Video", imdb: "tt1229822" },
+      { title: "Wuthering Heights", year: 2011, genre: "Romance", mood: "Dark", rating: 6.0, platform: "Prime Video", imdb: "tt1181614" },
+      { title: "Far from the Madding Crowd", year: 2015, genre: "Romance", mood: "Pastoral", rating: 7.1, platform: "HBO Max", imdb: "tt2935476" },
+      { title: "The Fault in Our Stars", year: 2014, genre: "Romance", mood: "Emotional", rating: 7.7, platform: "Disney+", imdb: "tt2582846" },
+      { title: "Me Before You", year: 2016, genre: "Romance", mood: "Emotional", rating: 7.4, platform: "HBO Max", imdb: "tt2674426" },
+      { title: "Five Feet Apart", year: 2019, genre: "Romance", mood: "Emotional", rating: 7.2, platform: "Hulu", imdb: "tt8267802" },
+
+      // Sci-Fi Movies (100)
+      { title: "Inception", year: 2010, genre: "Sci-Fi", mood: "Mind-bending", rating: 8.8, platform: "HBO Max", imdb: "tt1375666" },
+      { title: "The Matrix", year: 1999, genre: "Sci-Fi", mood: "Mind-bending", rating: 8.7, platform: "HBO Max", imdb: "tt0133093" },
+      { title: "Interstellar", year: 2014, genre: "Sci-Fi", mood: "Emotional", rating: 8.7, platform: "Paramount+", imdb: "tt0816692" },
+      { title: "Blade Runner 2049", year: 2017, genre: "Sci-Fi", mood: "Contemplative", rating: 8.0, platform: "HBO Max", imdb: "tt1856101" },
+      { title: "Arrival", year: 2016, genre: "Sci-Fi", mood: "Thoughtful", rating: 7.9, platform: "Paramount+", imdb: "tt2543164" },
+      { title: "Avatar", year: 2009, genre: "Sci-Fi", mood: "Epic", rating: 7.9, platform: "Disney+", imdb: "tt0499549" },
+      { title: "Avatar: The Way of Water", year: 2022, genre: "Sci-Fi", mood: "Epic", rating: 7.6, platform: "Disney+", imdb: "tt1630029" },
+      { title: "Dune", year: 2021, genre: "Sci-Fi", mood: "Epic", rating: 8.0, platform: "HBO Max", imdb: "tt1160419" },
+      { title: "Dune: Part Two", year: 2024, genre: "Sci-Fi", mood: "Epic", rating: 8.8, platform: "HBO Max", imdb: "tt15239678" },
+      { title: "Ex Machina", year: 2014, genre: "Sci-Fi", mood: "Thought-provoking", rating: 7.7, platform: "Netflix", imdb: "tt0470752" },
+      { title: "Annihilation", year: 2018, genre: "Sci-Fi", mood: "Eerie", rating: 6.8, platform: "Paramount+", imdb: "tt2798920" },
+      { title: "Under the Skin", year: 2013, genre: "Sci-Fi", mood: "Unsettling", rating: 6.3, platform: "Netflix", imdb: "tt1441395" },
+      { title: "Blade Runner", year: 1982, genre: "Sci-Fi", mood: "Noir", rating: 8.1, platform: "HBO Max", imdb: "tt0083658" },
+      { title: "2001: A Space Odyssey", year: 1968, genre: "Sci-Fi", mood: "Profound", rating: 8.3, platform: "HBO Max", imdb: "tt0062622" },
+      { title: "Solaris", year: 1972, genre: "Sci-Fi", mood: "Philosophical", rating: 8.1, platform: "HBO Max", imdb: "tt0069293" },
+      { title: "Stalker", year: 1979, genre: "Sci-Fi", mood: "Philosophical", rating: 8.1, platform: "HBO Max", imdb: "tt0079944" },
+      { title: "The Andromeda Strain", year: 1971, genre: "Sci-Fi", mood: "Tense", rating: 7.2, platform: "Prime Video", imdb: "tt0066769" },
+      { title: "Close Encounters", year: 1977, genre: "Sci-Fi", mood: "Wondrous", rating: 7.6, platform: "Netflix", imdb: "tt0075860" },
+      { title: "E.T.", year: 1982, genre: "Sci-Fi", mood: "Heartwarming", rating: 7.9, platform: "Netflix", imdb: "tt0083866" },
+      { title: "Contact", year: 1997, genre: "Sci-Fi", mood: "Thoughtful", rating: 7.5, platform: "HBO Max", imdb: "tt0118884" },
+      { title: "The Martian", year: 2015, genre: "Sci-Fi", mood: "Inspiring", rating: 8.0, platform: "Disney+", imdb: "tt3659388" },
+      { title: "Gravity", year: 2013, genre: "Sci-Fi", mood: "Intense", rating: 7.7, platform: "HBO Max", imdb: "tt1454468" },
+      { title: "Moon", year: 2009, genre: "Sci-Fi", mood: "Lonely", rating: 7.8, platform: "Netflix", imdb: "tt1182345" },
+      { title: "Sunshine", year: 2007, genre: "Sci-Fi", mood: "Intense", rating: 7.2, platform: "Hulu", imdb: "tt0448134" },
+      { title: "Event Horizon", year: 1997, genre: "Sci-Fi", mood: "Terrifying", rating: 6.6, platform: "Paramount+", imdb: "tt0119081" },
+      { title: "Prometheus", year: 2012, genre: "Sci-Fi", mood: "Mysterious", rating: 7.0, platform: "Hulu", imdb: "tt1446714" },
+      { title: "Alien: Covenant", year: 2017, genre: "Sci-Fi", mood: "Intense", rating: 6.4, platform: "Hulu", imdb: "tt2316204" },
+      { title: "Aliens", year: 1986, genre: "Sci-Fi", mood: "Action-packed", rating: 8.4, platform: "Hulu", imdb: "tt0090605" },
+      { title: "Alien", year: 1979, genre: "Sci-Fi", mood: "Terrifying", rating: 8.5, platform: "Hulu", imdb: "tt0078748" },
+      { title: "Alien 3", year: 1992, genre: "Sci-Fi", mood: "Dark", rating: 6.4, platform: "Hulu", imdb: "tt0103644" },
+      { title: "Alien: Resurrection", year: 1997, genre: "Sci-Fi", mood: "Weird", rating: 6.2, platform: "Hulu", imdb: "tt0118583" },
+      { title: "Predator", year: 1987, genre: "Sci-Fi", mood: "Action-packed", rating: 7.8, platform: "Hulu", imdb: "tt0093773" },
+      { title: "Predator 2", year: 1990, genre: "Sci-Fi", mood: "Action-packed", rating: 6.3, platform: "Hulu", imdb: "tt0100403" },
+      { title: "Predators", year: 2010, genre: "Sci-Fi", mood: "Action-packed", rating: 6.4, platform: "Hulu", imdb: "tt1424381" },
+      { title: "The Predator", year: 2018, genre: "Sci-Fi", mood: "Action-packed", rating: 5.3, platform: "Hulu", imdb: "tt3829266" },
+      { title: "Prey", year: 2022, genre: "Sci-Fi", mood: "Thrilling", rating: 7.2, platform: "Hulu", imdb: "tt11866324" },
+      { title: "The Terminator", year: 1984, genre: "Sci-Fi", mood: "Intense", rating: 8.1, platform: "Netflix", imdb: "tt0088247" },
+      { title: "Terminator 2", year: 1991, genre: "Sci-Fi", mood: "Action-packed", rating: 8.6, platform: "Netflix", imdb: "tt0103064" },
+      { title: "Terminator 3", year: 2003, genre: "Sci-Fi", mood: "Action-packed", rating: 6.3, platform: "Netflix", imdb: "tt0181852" },
+      { title: "Terminator Salvation", year: 2009, genre: "Sci-Fi", mood: "Dark", rating: 6.5, platform: "Netflix", imdb: "tt0438488" },
+      { title: "Terminator Genisys", year: 2015, genre: "Sci-Fi", mood: "Confusing", rating: 6.3, platform: "Paramount+", imdb: "tt1340138" },
+      { title: "Terminator: Dark Fate", year: 2019, genre: "Sci-Fi", mood: "Action-packed", rating: 6.2, platform: "Paramount+", imdb: "tt6450804" },
+      { title: "RoboCop", year: 1987, genre: "Sci-Fi", mood: "Satirical", rating: 7.6, platform: "Prime Video", imdb: "tt0093870" },
+      { title: "Total Recall", year: 1990, genre: "Sci-Fi", mood: "Mind-bending", rating: 7.5, platform: "HBO Max", imdb: "tt0100802" },
+      { title: "Minority Report", year: 2002, genre: "Sci-Fi", mood: "Thrilling", rating: 7.7, platform: "Paramount+", imdb: "tt0181689" },
+      { title: "I, Robot", year: 2004, genre: "Sci-Fi", mood: "Action-packed", rating: 7.1, platform: "Disney+", imdb: "tt0343818" },
+      { title: "A.I. Artificial Intelligence", year: 2001, genre: "Sci-Fi", mood: "Emotional", rating: 7.2, platform: "Paramount+", imdb: "tt0212720" },
+      { title: "Her", year: 2013, genre: "Sci-Fi", mood: "Melancholic", rating: 8.0, platform: "HBO Max", imdb: "tt1798709" },
+      { title: "Ex Machina", year: 2014, genre: "Sci-Fi", mood: "Unsettling", rating: 7.7, platform: "Netflix", imdb: "tt0470752" },
+      { title: "The Machine", year: 2013, genre: "Sci-Fi", mood: "Thoughtful", rating: 6.0, platform: "Prime Video", imdb: "tt2317225" },
+      { title: "Chappie", year: 2015, genre: "Sci-Fi", mood: "Emotional", rating: 6.8, platform: "Netflix", imdb: "tt1823672" },
+      { title: "District 9", year: 2009, genre: "Sci-Fi", mood: "Gritty", rating: 7.9, platform: "Netflix", imdb: "tt1136608" },
+      { title: "Elysium", year: 2013, genre: "Sci-Fi", mood: "Action-packed", rating: 6.6, platform: "Netflix", imdb: "tt1535108" },
+      { title: "Edge of Tomorrow", year: 2014, genre: "Sci-Fi", mood: "Exciting", rating: 7.9, platform: "HBO Max", imdb: "tt1631867" },
+      { title: "Looper", year: 2012, genre: "Sci-Fi", mood: "Complex", rating: 7.4, platform: "Netflix", imdb: "tt1276104" },
+      { title: "Source Code", year: 2011, genre: "Sci-Fi", mood: "Thrilling", rating: 7.5, platform: "Netflix", imdb: "tt0945513" },
+      { title: "Timecrimes", year: 2007, genre: "Sci-Fi", mood: "Complex", rating: 7.2, platform: "Prime Video", imdb: "tt0480669" },
+      { title: "Primer", year: 2004, genre: "Sci-Fi", mood: "Complex", rating: 6.8, platform: "Prime Video", imdb: "tt0390384" },
+      { title: "Predestination", year: 2014, genre: "Sci-Fi", mood: "Mind-bending", rating: 7.4, platform: "Netflix", imdb: "tt2397535" },
+      { title: "Coherence", year: 2013, genre: "Sci-Fi", mood: "Mind-bending", rating: 7.2, platform: "Prime Video", imdb: "tt2866360" },
+      { title: "Triangle", year: 2009, genre: "Sci-Fi", mood: "Confusing", rating: 6.9, platform: "Prime Video", imdb: "tt1187064" },
+      { title: "The Endless", year: 2017, genre: "Sci-Fi", mood: "Mysterious", rating: 6.5, platform: "Netflix", imdb: "tt3986820" },
+      { title: "The One I Love", year: 2014, genre: "Sci-Fi", mood: "Weird", rating: 7.0, platform: "Netflix", imdb: "tt2756032" },
+      { title: "Safety Not Guaranteed", year: 2012, genre: "Sci-Fi", mood: "Quirky", rating: 6.9, platform: "Netflix", imdb: "tt1862079" },
+      { title: "Donnie Darko", year: 2001, genre: "Sci-Fi", mood: "Mind-bending", rating: 8.0, platform: "Prime Video", imdb: "tt0246578" },
+      { title: "The Butterfly Effect", year: 2004, genre: "Sci-Fi", mood: "Dark", rating: 7.6, platform: "Prime Video", imdb: "tt0289879" },
+      { title: "Mr. Nobody", year: 2009, genre: "Sci-Fi", mood: "Philosophical", rating: 7.7, platform: "Netflix", imdb: "tt0485947" },
+      { title: "The Fountain", year: 2006, genre: "Sci-Fi", mood: "Philosophical", rating: 7.2, platform: "HBO Max", imdb: "tt0414993" },
+      { title: "Cloud Atlas", year: 2012, genre: "Sci-Fi", mood: "Epic", rating: 7.4, platform: "HBO Max", imdb: "tt1371111" },
+      { title: "The Fifth Element", year: 1997, genre: "Sci-Fi", mood: "Fun", rating: 7.6, platform: "Netflix", imdb: "tt0119116" },
+      { title: "Valerian", year: 2017, genre: "Sci-Fi", mood: "Visual", rating: 6.4, platform: "Prime Video", imdb: "tt2239822" },
+      { title: "Jupiter Ascending", year: 2015, genre: "Sci-Fi", mood: "Visual", rating: 5.3, platform: "HBO Max", imdb: "tt1617661" },
+      { title: "John Carter", year: 2012, genre: "Sci-Fi", mood: "Adventure", rating: 6.6, platform: "Disney+", imdb: "tt0401729" },
+      { title: "Tron: Legacy", year: 2010, genre: "Sci-Fi", mood: "Visual", rating: 6.8, platform: "Disney+", imdb: "tt1104001" },
+      { title: "Tron", year: 1982, genre: "Sci-Fi", mood: "Classic", rating: 6.7, platform: "Disney+", imdb: "tt0084827" },
+      { title: "WarGames", year: 1983, genre: "Sci-Fi", mood: "Tense", rating: 7.1, platform: "HBO Max", imdb: "tt0086567" },
+      { title: "The Last Starfighter", year: 1984, genre: "Sci-Fi", mood: "Fun", rating: 6.7, platform: "Prime Video", imdb: "tt0087597" },
+      { title: "Starship Troopers", year: 1997, genre: "Sci-Fi", mood: "Satirical", rating: 7.3, platform: "Netflix", imdb: "tt0120201" },
+      { title: "Ender's Game", year: 2013, genre: "Sci-Fi", mood: "Strategic", rating: 6.6, platform: "Hulu", imdb: "tt1731141" },
+      { title: "Alita: Battle Angel", year: 2019, genre: "Sci-Fi", mood: "Action-packed", rating: 7.3, platform: "HBO Max", imdb: "tt0437086" },
+      { title: "Ghost in the Shell", year: 2017, genre: "Sci-Fi", mood: "Stylish", rating: 6.3, platform: "Paramount+", imdb: "tt1219827" },
+      { title: "Akira", year: 1988, genre: "Sci-Fi", mood: "Intense", rating: 8.0, platform: "Hulu", imdb: "tt0094625" },
+      { title: "Paprika", year: 2006, genre: "Sci-Fi", mood: "Surreal", rating: 7.7, platform: "Prime Video", imdb: "tt0851578" },
+      { title: "Ghost in the Shell", year: 1995, genre: "Sci-Fi", mood: "Philosophical", rating: 8.0, platform: "Hulu", imdb: "tt0113568" },
+      { title: "Cowboy Bebop", year: 2001, genre: "Sci-Fi", mood: "Stylish", rating: 7.9, platform: "Netflix", imdb: "tt0213338" },
+      { title: "Steamboy", year: 2004, genre: "Sci-Fi", mood: "Visual", rating: 6.8, platform: "Prime Video", imdb: "tt0348121" },
+      { title: "Metropolis", year: 2001, genre: "Sci-Fi", mood: "Classic", rating: 7.2, platform: "Prime Video", imdb: "tt0293416" },
+      { title: "The Animatrix", year: 2003, genre: "Sci-Fi", mood: "Stylish", rating: 7.3, platform: "HBO Max", imdb: "tt0328832" },
+      { title: "Ready Player One", year: 2018, genre: "Sci-Fi", mood: "Fun", rating: 7.4, platform: "HBO Max", imdb: "tt1677720" },
+      { title: "Free Guy", year: 2021, genre: "Sci-Fi", mood: "Fun", rating: 7.1, platform: "Disney+", imdb: "tt6264654" },
+      { title: "The Matrix Reloaded", year: 2003, genre: "Sci-Fi", mood: "Action-packed", rating: 7.2, platform: "HBO Max", imdb: "tt0234215" },
+      { title: "The Matrix Revolutions", year: 2003, genre: "Sci-Fi", mood: "Epic", rating: 6.8, platform: "HBO Max", imdb: "tt0242653" },
+      { title: "The Matrix Resurrections", year: 2021, genre: "Sci-Fi", mood: "Nostalgic", rating: 5.7, platform: "HBO Max", imdb: "tt10838180" },
+      { title: "Tenet", year: 2020, genre: "Sci-Fi", mood: "Complex", rating: 7.3, platform: "HBO Max", imdb: "tt6723592" },
+      { title: "The Prestige", year: 2006, genre: "Sci-Fi", mood: "Mysterious", rating: 8.5, platform: "HBO Max", imdb: "tt0482571" },
+
+      // Thriller Movies (50)
+      { title: "Se7en", year: 1995, genre: "Thriller", mood: "Dark", rating: 8.6, platform: "Netflix", imdb: "tt0114369" },
+      { title: "Shutter Island", year: 2010, genre: "Thriller", mood: "Mysterious", rating: 8.2, platform: "Paramount+", imdb: "tt1130884" },
+      { title: "Gone Girl", year: 2014, genre: "Thriller", mood: "Twisted", rating: 8.1, platform: "Netflix", imdb: "tt2267998" },
+      { title: "Prisoners", year: 2013, genre: "Thriller", mood: "Intense", rating: 8.1, platform: "HBO Max", imdb: "tt1392214" },
+      { title: "Zodiac", year: 2007, genre: "Thriller", mood: "Meticulous", rating: 7.7, platform: "Paramount+", imdb: "tt0443706" },
+      { title: "Nightcrawler", year: 2014, genre: "Thriller", mood: "Disturbing", rating: 7.8, platform: "Netflix", imdb: "tt2872718" },
+      { title: "Sicario", year: 2015, genre: "Thriller", mood: "Intense", rating: 7.7, platform: "Prime Video", imdb: "tt3397884" },
+      { title: "The Girl with the Dragon Tattoo", year: 2011, genre: "Thriller", mood: "Dark", rating: 7.8, platform: "Netflix", imdb: "tt1568346" },
+      { title: "The Silence of the Lambs", year: 1991, genre: "Thriller", mood: "Disturbing", rating: 8.6, platform: "Netflix", imdb: "tt0102926" },
+      { title: "No Country for Old Men", year: 2007, genre: "Thriller", mood: "Tense", rating: 8.2, platform: "Prime Video", imdb: "tt0477348" },
+      { title: "The Departed", year: 2006, genre: "Thriller", mood: "Intense", rating: 8.5, platform: "HBO Max", imdb: "tt0407887" },
+      { title: "Mystic River", year: 2003, genre: "Thriller", mood: "Dark", rating: 7.9, platform: "HBO Max", imdb: "tt0327056" },
+      { title: "L.A. Confidential", year: 1997, genre: "Thriller", mood: "Noir", rating: 8.2, platform: "HBO Max", imdb: "tt0119488" },
+      { title: "Heat", year: 1995, genre: "Thriller", mood: "Epic", rating: 8.3, platform: "Netflix", imdb: "tt0113277" },
+      { title: "Collateral", year: 2004, genre: "Thriller", mood: "Stylish", rating: 7.5, platform: "Paramount+", imdb: "tt0369339" },
+      { title: "Drive", year: 2011, genre: "Thriller", mood: "Stylish", rating: 7.8, platform: "Prime Video", imdb: "tt0780504" },
+      { title: "The Town", year: 2010, genre: "Thriller", mood: "Intense", rating: 7.5, platform: "HBO Max", imdb: "tt0840361" },
+      { title: "The Usual Suspects", year: 1995, genre: "Thriller", mood: "Clever", rating: 8.5, platform: "Prime Video", imdb: "tt0114814" },
+      { title: "Memento", year: 2000, genre: "Thriller", mood: "Mind-bending", rating: 8.4, platform: "Paramount+", imdb: "tt0209144" },
+      { title: "Oldboy", year: 2003, genre: "Thriller", mood: "Brutal", rating: 8.4, platform: "HBO Max", imdb: "tt0364569" },
+      { title: "Parasite", year: 2019, genre: "Thriller", mood: "Twisted", rating: 8.5, platform: "Hulu", imdb: "tt6751668" },
+      { title: "Memories of Murder", year: 2003, genre: "Thriller", mood: "Dark", rating: 8.1, platform: "Hulu", imdb: "tt0353969" },
+      { title: "The Chaser", year: 2008, genre: "Thriller", mood: "Intense", rating: 7.8, platform: "Prime Video", imdb: "tt1190539" },
+      { title: "I Saw the Devil", year: 2010, genre: "Thriller", mood: "Brutal", rating: 7.8, platform: "Prime Video", imdb: "tt1588170" },
+      { title: "Mother", year: 2009, genre: "Thriller", mood: "Dark", rating: 7.8, platform: "Netflix", imdb: "tt1216496" },
+      { title: "The Wailing", year: 2016, genre: "Thriller", mood: "Mysterious", rating: 7.4, platform: "Netflix", imdb: "tt5215952" },
+      { title: "The Handmaiden", year: 2016, genre: "Thriller", mood: "Twisted", rating: 8.1, platform: "Prime Video", imdb: "tt4016934" },
+      { title: "Burning", year: 2018, genre: "Thriller", mood: "Mysterious", rating: 7.5, platform: "Netflix", imdb: "tt7282468" },
+      { title: "The Yellow Sea", year: 2010, genre: "Thriller", mood: "Brutal", rating: 7.3, platform: "Prime Video", imdb: "tt1230385" },
+      { title: "A Bittersweet Life", year: 2005, genre: "Thriller", mood: "Stylish", rating: 7.5, platform: "Netflix", imdb: "tt0456912" },
+      { title: "The Man from Nowhere", year: 2010, genre: "Thriller", mood: "Intense", rating: 7.8, platform: "Netflix", imdb: "tt1527788" },
+      { title: "Joint Security Area", year: 2000, genre: "Thriller", mood: "Tense", rating: 7.8, platform: "Netflix", imdb: "tt0260991" },
+      { title: "Sympathy for Mr. Vengeance", year: 2002, genre: "Thriller", mood: "Dark", rating: 7.6, platform: "Prime Video", imdb: "tt0310775" },
+      { title: "Lady Vengeance", year: 2005, genre: "Thriller", mood: "Stylish", rating: 7.6, platform: "Prime Video", imdb: "tt0451094" },
+      { title: "Thirst", year: 2009, genre: "Thriller", mood: "Dark", rating: 7.1, platform: "Hulu", imdb: "tt0762073" },
+      { title: "Save the Green Planet!", year: 2003, genre: "Thriller", mood: "Weird", rating: 7.3, platform: "Prime Video", imdb: "tt0353471" },
+      { title: "Bedevilled", year: 2010, genre: "Thriller", mood: "Brutal", rating: 7.3, platform: "Prime Video", imdb: "tt1646959" },
+      { title: "Pieta", year: 2012, genre: "Thriller", mood: "Brutal", rating: 7.2, platform: "Prime Video", imdb: "tt2299842" },
+      { title: "3-Iron", year: 2004, genre: "Thriller", mood: "Poetic", rating: 8.0, platform: "Prime Video", imdb: "tt0423866" },
+      { title: "Peppermint Candy", year: 1999, genre: "Thriller", mood: "Dark", rating: 7.7, platform: "Prime Video", imdb: "tt0247586" },
+      { title: "Secret Sunshine", year: 2007, genre: "Thriller", mood: "Dark", rating: 7.5, platform: "Prime Video", imdb: "tt0911477" },
+      { title: "Poetry", year: 2010, genre: "Thriller", mood: "Contemplative", rating: 7.8, platform: "Prime Video", imdb: "tt1573185" },
+      { title: "The Good, the Bad, the Weird", year: 2008, genre: "Thriller", mood: "Fun", rating: 7.3, platform: "Netflix", imdb: "tt0901487" },
+      { title: "A Taxi Driver", year: 2017, genre: "Thriller", mood: "Powerful", rating: 7.9, platform: "Netflix", imdb: "tt6878038" },
+      { title: "1987: When the Day Comes", year: 2017, genre: "Thriller", mood: "Powerful", rating: 7.8, platform: "Netflix", imdb: "tt6493286" },
+      { title: "The Attorney", year: 2013, genre: "Thriller", mood: "Inspiring", rating: 7.8, platform: "Netflix", imdb: "tt3404140" },
+      { title: "Silenced", year: 2011, genre: "Thriller", mood: "Disturbing", rating: 8.1, platform: "Netflix", imdb: "tt2070649" },
+      { title: "Hope", year: 2013, genre: "Thriller", mood: "Heartbreaking", rating: 8.2, platform: "Netflix", imdb: "tt3305098" },
+      { title: "Friend", year: 2001, genre: "Thriller", mood: "Intense", rating: 7.3, platform: "Prime Video", imdb: "tt0281718" },
+      { title: "Shiri", year: 1999, genre: "Thriller", mood: "Thrilling", rating: 6.6, platform: "Prime Video", imdb: "tt0192657" },
+
+      // Documentary Movies (50)
+      { title: "Free Solo", year: 2018, genre: "Documentary", mood: "Inspiring", rating: 8.2, platform: "Disney+", imdb: "tt7775622" },
+      { title: "Won't You Be My Neighbor?", year: 2018, genre: "Documentary", mood: "Heartwarming", rating: 8.4, platform: "HBO Max", imdb: "tt7681902" },
+      { title: "13th", year: 2016, genre: "Documentary", mood: "Eye-opening", rating: 8.2, platform: "Netflix", imdb: "tt5895028" },
+      { title: "Making a Murderer", year: 2015, genre: "Documentary", mood: "Gripping", rating: 8.6, platform: "Netflix", imdb: "tt5189670" },
+      { title: "The Act of Killing", year: 2012, genre: "Documentary", mood: "Disturbing", rating: 8.2, platform: "Prime Video", imdb: "tt2375605" },
+      { title: "Jiro Dreams of Sushi", year: 2011, genre: "Documentary", mood: "Meditative", rating: 7.8, platform: "HBO Max", imdb: "tt1772925" },
+      { title: "Man on Wire", year: 2008, genre: "Documentary", mood: "Thrilling", rating: 7.7, platform: "Netflix", imdb: "tt1155592" },
+      { title: "Searching for Sugar Man", year: 2012, genre: "Documentary", mood: "Mysterious", rating: 8.2, platform: "Prime Video", imdb: "tt2125608" },
+      { title: "Amy", year: 2015, genre: "Documentary", mood: "Tragic", rating: 7.8, platform: "Prime Video", imdb: "tt2870648" },
+      { title: "Citizenfour", year: 2014, genre: "Documentary", mood: "Tense", rating: 8.0, platform: "HBO Max", imdb: "tt4044364" },
+      { title: "Bowling for Columbine", year: 2002, genre: "Documentary", mood: "Provocative", rating: 8.0, platform: "Prime Video", imdb: "tt0310793" },
+      { title: "Fahrenheit 9/11", year: 2004, genre: "Documentary", mood: "Controversial", rating: 7.5, platform: "Prime Video", imdb: "tt0361596" },
+      { title: "An Inconvenient Truth", year: 2006, genre: "Documentary", mood: "Urgent", rating: 7.4, platform: "Paramount+", imdb: "tt0497116" },
+      { title: "Blackfish", year: 2013, genre: "Documentary", mood: "Disturbing", rating: 8.1, platform: "Prime Video", imdb: "tt2545118" },
+      { title: "The Cove", year: 2009, genre: "Documentary", mood: "Intense", rating: 8.4, platform: "Paramount+", imdb: "tt1313104" },
+      { title: "Grizzly Man", year: 2005, genre: "Documentary", mood: "Tragic", rating: 7.8, platform: "Prime Video", imdb: "tt0427312" },
+      { title: "Cave of Forgotten Dreams", year: 2010, genre: "Documentary", mood: "Wondrous", rating: 7.4, platform: "Prime Video", imdb: "tt1664894" },
+      { title: "Into the Abyss", year: 2011, genre: "Documentary", mood: "Dark", rating: 7.3, platform: "Netflix", imdb: "tt1972663" },
+      { title: "Exit Through the Gift Shop", year: 2010, genre: "Documentary", mood: "Clever", rating: 8.0, platform: "Prime Video", imdb: "tt1587707" },
+      { title: "The King of Kong", year: 2007, genre: "Documentary", mood: "Fun", rating: 8.0, platform: "Prime Video", imdb: "tt0923752" },
+      { title: "Spellbound", year: 2002, genre: "Documentary", mood: "Uplifting", rating: 7.5, platform: "Prime Video", imdb: "tt0334405" },
+      { title: "Hoop Dreams", year: 1994, genre: "Documentary", mood: "Inspiring", rating: 8.3, platform: "HBO Max", imdb: "tt0110057" },
+      { title: "The Last Dance", year: 2020, genre: "Documentary", mood: "Inspiring", rating: 9.1, platform: "Netflix", imdb: "tt8420184" },
+      { title: "Senna", year: 2010, genre: "Documentary", mood: "Inspiring", rating: 8.5, platform: "Prime Video", imdb: "tt1424432" },
+      { title: "The Dawn Wall", year: 2017, genre: "Documentary", mood: "Inspiring", rating: 8.0, platform: "Netflix", imdb: "tt7286916" },
+      { title: "Meru", year: 2015, genre: "Documentary", mood: "Inspiring", rating: 7.7, platform: "Prime Video", imdb: "tt2545428" },
+      { title: "Valley Uprising", year: 2014, genre: "Documentary", mood: "Exciting", rating: 7.3, platform: "Netflix", imdb: "tt3784160" },
+      { title: "Touching the Void", year: 2003, genre: "Documentary", mood: "Harrowing", rating: 8.0, platform: "Prime Video", imdb: "tt0379557" },
+      { title: "The Alpinist", year: 2021, genre: "Documentary", mood: "Inspiring", rating: 7.9, platform: "Netflix", imdb: "tt11790780" },
+      { title: "14 Peaks", year: 2021, genre: "Documentary", mood: "Inspiring", rating: 7.9, platform: "Netflix", imdb: "tt14079374" },
+      { title: "The Rescue", year: 2021, genre: "Documentary", mood: "Thrilling", rating: 8.4, platform: "Disney+", imdb: "tt9098872" },
+      { title: "The Battered Bastards of Baseball", year: 2014, genre: "Documentary", mood: "Fun", rating: 7.3, platform: "Netflix", imdb: "tt3445270" },
+      { title: "Icarus", year: 2017, genre: "Documentary", mood: "Shocking", rating: 7.9, platform: "Netflix", imdb: "tt6333060" },
+      { title: "The Armstrong Lie", year: 2013, genre: "Documentary", mood: "Revealing", rating: 7.4, platform: "Prime Video", imdb: "tt2866360" },
+      { title: "O.J.: Made in America", year: 2016, genre: "Documentary", mood: "Epic", rating: 8.9, platform: "ESPN+", imdb: "tt5275892" },
+      { title: "The Thin Blue Line", year: 1988, genre: "Documentary", mood: "Gripping", rating: 8.0, platform: "Prime Video", imdb: "tt0096257" },
+      { title: "The Fog of War", year: 2003, genre: "Documentary", mood: "Thoughtful", rating: 8.1, platform: "Netflix", imdb: "tt0317910" },
+      { title: "Won't You Be My Neighbor?", year: 2018, genre: "Documentary", mood: "Heartwarming", rating: 8.4, platform: "HBO Max", imdb: "tt7681902" },
+      { title: "Three Identical Strangers", year: 2018, genre: "Documentary", mood: "Mind-blowing", rating: 7.6, platform: "Hulu", imdb: "tt7664504" },
+      { title: "Tiger King", year: 2020, genre: "Documentary", mood: "Wild", rating: 7.5, platform: "Netflix", imdb: "tt11823076" },
+      { title: "The Social Dilemma", year: 2020, genre: "Documentary", mood: "Eye-opening", rating: 7.6, platform: "Netflix", imdb: "tt11464826" },
+      { title: "My Octopus Teacher", year: 2020, genre: "Documentary", mood: "Beautiful", rating: 8.1, platform: "Netflix", imdb: "tt12888462" },
+      { title: "The Ivory Game", year: 2016, genre: "Documentary", mood: "Urgent", rating: 7.9, platform: "Netflix", imdb: "tt5180632" },
+      { title: "Virunga", year: 2014, genre: "Documentary", mood: "Powerful", rating: 8.2, platform: "Netflix", imdb: "tt3455224" },
+      { title: "Chasing Ice", year: 2012, genre: "Documentary", mood: "Urgent", rating: 7.7, platform: "Netflix", imdb: "tt1579361" },
+      { title: "Planet Earth", year: 2006, genre: "Documentary", mood: "Wondrous", rating: 9.4, platform: "Netflix", imdb: "tt0795176" },
+      { title: "Blue Planet", year: 2001, genre: "Documentary", mood: "Wondrous", rating: 9.1, platform: "Netflix", imdb: "tt0296310" },
+      { title: "Our Planet", year: 2019, genre: "Documentary", mood: "Stunning", rating: 9.3, platform: "Netflix", imdb: "tt9253866" },
+      { title: "The Last Dance", year: 2020, genre: "Documentary", mood: "Inspiring", rating: 9.1, platform: "Netflix", imdb: "tt8420184" },
+      { title: "Abstract: The Art of Design", year: 2017, genre: "Documentary", mood: "Inspiring", rating: 8.4, platform: "Netflix", imdb: "tt6641086" }
+    ];
+
+    let currentFilters = {
+      genre: 'all',
+      mood: 'all',
+      platform: 'all'
+    };
+
+    // Render movies
+    function renderMovies() {
+      const container = document.getElementById('movies-container');
+      const filteredMovies = moviesDatabase.filter(movie => {
+        const genreMatch = currentFilters.genre === 'all' || movie.genre === currentFilters.genre;
+        const moodMatch = currentFilters.mood === 'all' || movie.mood === currentFilters.mood;
+        const platformMatch = currentFilters.platform === 'all' || movie.platform === currentFilters.platform;
+        return genreMatch && moodMatch && platformMatch;
+      });
+
+      document.getElementById('results-count').textContent = filteredMovies.length;
+
+      container.innerHTML = filteredMovies.map(movie => `
+        <div class="movie-card rounded-2xl shadow-xl overflow-hidden p-6">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xl font-bold text-white flex-1">${movie.title}</h3>
+            <span class="text-sm font-bold text-white ml-2 bg-white bg-opacity-20 px-2 py-1 rounded-full">${movie.year}</span>
+          </div>
+          
+          <div class="flex items-center mb-3 star-rating">
+            <span class="text-yellow-400 text-lg mr-1">⭐</span>
+            <span class="font-bold text-gray-800">${movie.rating}</span>
+          </div>
+
+          <div class="mb-3">
+            <span class="genre-badge">${movie.genre}</span>
+            <span class="text-sm text-white opacity-90">${movie.mood}</span>
+          </div>
+
+          <div class="mb-4">
+            <span class="streaming-badge">${movie.platform}</span>
+          </div>
+
+          <a href="https://www.imdb.com/title/${movie.imdb}" target="_blank" rel="noopener noreferrer" 
+             class="block w-full text-center bg-white text-purple-600 font-bold py-3 px-4 rounded-xl hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
+            View on IMDb →
+          </a>
+        </div>
+      `).join('');
+    }
+
+    // Handle filter clicks
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const filterType = this.dataset.filter;
+        const filterValue = this.dataset.value;
+
+        // Update active state
+        document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(b => {
+          b.classList.remove('active');
+        });
+        this.classList.add('active');
+
+        // Update filters
+        currentFilters[filterType] = filterValue;
+
+        // Re-render
+        renderMovies();
+      });
+    });
+
+    // Initial render
+    renderMovies();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ab4e758d7fd6eef',t:'MTc2NTI4NzUxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
